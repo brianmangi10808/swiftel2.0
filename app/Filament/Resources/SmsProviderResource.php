@@ -15,6 +15,7 @@ use Filament\Tables\Table;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Support\Exceptions\Halt;
 
 class SmsProviderResource extends Resource
 {
@@ -120,6 +121,108 @@ class SmsProviderResource extends Resource
                         return $formFields;
                     })
                     ->columns(2),
+
+                Forms\Components\Section::make('Connection Test')
+                    ->schema([
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('test_connection')
+                                ->label('Test Connection & Check Balance')
+                                ->icon('heroicon-o-signal')
+                                ->color('success')
+                                ->requiresConfirmation(false)
+                                ->action(function (Get $get, Forms\Set $set) {
+                                    $providerType = $get('provider_type');
+                                    $configuration = $get('configuration');
+
+                                    if (!$providerType) {
+                                        Notification::make()
+                                            ->title('Provider Type Required')
+                                            ->body('Please select a provider type first.')
+                                            ->warning()
+                                            ->send();
+                                        throw new Halt();
+                                    }
+
+                                    if (!$configuration || empty(array_filter($configuration))) {
+                                        Notification::make()
+                                            ->title('Configuration Required')
+                                            ->body('Please fill in the provider configuration fields first.')
+                                            ->warning()
+                                            ->send();
+                                        throw new Halt();
+                                    }
+
+                                    $availableProviders = SmsProviderFactory::getAvailableProviders();
+
+                                    if (!isset($availableProviders[$providerType])) {
+                                        Notification::make()
+                                            ->title('Invalid Provider')
+                                            ->body('The selected provider type is not valid.')
+                                            ->danger()
+                                            ->send();
+                                        throw new Halt();
+                                    }
+
+                                    try {
+                                        $providerClass = $availableProviders[$providerType];
+                                        $provider = new $providerClass($configuration);
+                                        $result = $provider->testConnection();
+
+                                        if ($result['success']) {
+                                            $bodyHtml = '<div style="font-size: 14px;">';
+                                            $bodyHtml .= '<p style="margin-bottom: 10px;">' . $result['message'] . '</p>';
+
+                                            if (isset($result['data']['balance'])) {
+                                                $bodyHtml .= '<div style="background-color: #10b981; color: white; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 16px; text-align: center; margin-top: 10px;">';
+                                                $bodyHtml .= '💰 Balance: ' . $result['data']['balance'];
+                                                $bodyHtml .= '</div>';
+                                            }
+
+                                            if (isset($result['data']) && count($result['data']) > 1) {
+                                                $bodyHtml .= '<div style="margin-top: 12px; padding: 10px; background-color: #f3f4f6; border-radius: 6px;">';
+                                                foreach ($result['data'] as $key => $value) {
+                                                    if ($key !== 'balance') {
+                                                        $bodyHtml .= '<div style="margin: 4px 0;"><strong>' . ucfirst(str_replace('_', ' ', $key)) . ':</strong> ' . $value . '</div>';
+                                                    }
+                                                }
+                                                $bodyHtml .= '</div>';
+                                            }
+
+                                            $bodyHtml .= '</div>';
+
+                                            Notification::make()
+                                                ->title('✅ Connection Successful!')
+                                                ->body(new \Illuminate\Support\HtmlString($bodyHtml))
+                                                ->success()
+                                                ->duration(10000)
+                                                ->send();
+                                        } else {
+                                            Notification::make()
+                                                ->title('❌ Connection Failed')
+                                                ->body($result['message'])
+                                                ->danger()
+                                                ->duration(8000)
+                                                ->send();
+                                        }
+                                    } catch (\Exception $e) {
+                                        Notification::make()
+                                            ->title('Error Testing Connection')
+                                            ->body('An error occurred: ' . $e->getMessage())
+                                            ->danger()
+                                            ->send();
+                                        throw new Halt();
+                                    }
+                                }),
+                        ])
+                        ->fullWidth(),
+
+                        Forms\Components\Placeholder::make('test_info')
+                            ->label('')
+                            ->content('Click the button above to test the connection with your provider credentials and view your account balance.')
+                            ->extraAttributes(['class' => 'text-sm text-gray-600']),
+                    ])
+                    ->visible(fn (Get $get) => $get('provider_type') !== null)
+                    ->collapsible(),
             ]);
     }
 
@@ -183,6 +286,7 @@ class SmsProviderResource extends Resource
             ])
             ->actions([
                 Tables\Actions\Action::make('test')
+                    ->label('Test & Check Balance')
                     ->icon('heroicon-o-signal')
                     ->color('success')
                     ->action(function (SmsProvider $record) {
@@ -200,24 +304,39 @@ class SmsProviderResource extends Resource
                         $result = $provider->testConnection();
 
                         if ($result['success']) {
-                            $message = $result['message'];
-                            if (isset($result['data'])) {
-                                $message .= '<br><br>';
-                                foreach ($result['data'] as $key => $value) {
-                                    $message .= ucfirst(str_replace('_', ' ', $key)) . ': ' . $value . '<br>';
-                                }
+                            $bodyHtml = '<div style="font-size: 14px;">';
+                            $bodyHtml .= '<p style="margin-bottom: 10px;">' . $result['message'] . '</p>';
+
+                            if (isset($result['data']['balance'])) {
+                                $bodyHtml .= '<div style="background-color: #10b981; color: white; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 16px; text-align: center; margin-top: 10px;">';
+                                $bodyHtml .= '💰 Balance: ' . $result['data']['balance'];
+                                $bodyHtml .= '</div>';
                             }
 
+                            if (isset($result['data']) && count($result['data']) > 1) {
+                                $bodyHtml .= '<div style="margin-top: 12px; padding: 10px; background-color: #f3f4f6; border-radius: 6px;">';
+                                foreach ($result['data'] as $key => $value) {
+                                    if ($key !== 'balance') {
+                                        $bodyHtml .= '<div style="margin: 4px 0;"><strong>' . ucfirst(str_replace('_', ' ', $key)) . ':</strong> ' . $value . '</div>';
+                                    }
+                                }
+                                $bodyHtml .= '</div>';
+                            }
+
+                            $bodyHtml .= '</div>';
+
                             Notification::make()
-                                ->title('Connection Successful')
-                                ->body($message)
+                                ->title('✅ Connection Successful!')
+                                ->body(new \Illuminate\Support\HtmlString($bodyHtml))
                                 ->success()
+                                ->duration(10000)
                                 ->send();
                         } else {
                             Notification::make()
-                                ->title('Connection Failed')
+                                ->title('❌ Connection Failed')
                                 ->body($result['message'])
                                 ->danger()
+                                ->duration(8000)
                                 ->send();
                         }
                     }),
