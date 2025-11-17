@@ -71,52 +71,124 @@
             </form>
         @endif
 
-        {{-- SMS Gateway Tab --}}
+        {{-- SMS Providers Tab --}}
         @if($activeTab === 'sms')
-            <form wire:submit="saveSmsGateway">
-                <x-filament::section>
-                    <x-slot name="heading">
+            <x-filament::section>
+                <x-slot name="heading">
+                    <div class="flex items-center justify-between w-full">
                         <div class="flex items-center gap-2">
                             <x-heroicon-o-chat-bubble-left-right class="w-5 h-5" />
-                            SMS Gateway Configuration (Simflix)
+                            SMS Gateway Providers
                         </div>
-                    </x-slot>
-                    
-                    <div class="space-y-4">
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Configure your Simflix SMS gateway settings for sending messages to customers.
-                        </p>
-                        
-                        <div class="grid grid-cols-1 gap-4">
+                        <a href="{{ route('filament.admin.resources.sms-providers.index') }}"
+                           class="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
+                            Manage Providers →
+                        </a>
+                    </div>
+                </x-slot>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <x-heroicon-o-information-circle class="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             <div>
-                                <label class="block text-sm font-medium mb-2">API Key *</label>
-                                <input type="text" wire:model="api_key" class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 font-mono text-sm" placeholder="098989789786676767YGBTFVTFCDFCTFXXDX989...">
-                                <p class="text-xs text-gray-500 mt-1">Your Simflix API key</p>
+                                <p class="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                    SMS providers are now managed separately
+                                </p>
+                                <p class="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                    Click "Manage Providers" to configure multiple SMS gateways (Simflix, Africa's Talking, Twilio, Suftech)
+                                </p>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Sender ID *</label>
-                                <input type="text" wire:model="sender_id" class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900" placeholder="RADMAN" maxlength="11">
-                                <p class="text-xs text-gray-500 mt-1">Sender ID (max 11 characters)</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Service ID</label>
-                                <input type="text" wire:model="service_id" class="w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900" placeholder="0">
-                                <p class="text-xs text-gray-500 mt-1">Usually 0 for default service</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-2">
-                            <x-filament::button type="submit" color="success">
-                                Save Configuration
-                            </x-filament::button>
-                            <x-filament::button type="button" wire:click="testSmsConnection" color="gray" outlined>
-                                <x-heroicon-o-signal class="w-4 h-4 mr-1" />
-                                Test Connection
-                            </x-filament::button>
                         </div>
                     </div>
-                </x-filament::section>
-            </form>
+
+                    @php
+                        $providers = $this->getSmsProviders();
+                    @endphp
+
+                    @if($providers->isEmpty())
+                        <div class="text-center py-12">
+                            <x-heroicon-o-exclamation-triangle class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                                No SMS Providers Configured
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                                You need to configure at least one SMS provider to send messages to customers.
+                            </p>
+                            <a href="{{ route('filament.admin.resources.sms-providers.create') }}">
+                                <x-filament::button color="primary">
+                                    <x-heroicon-o-plus class="w-4 h-4 mr-1" />
+                                    Add Your First Provider
+                                </x-filament::button>
+                            </a>
+                        </div>
+                    @else
+                        <div class="space-y-3">
+                            <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                Configured Providers ({{ $providers->count() }})
+                            </h4>
+
+                            @foreach($providers as $provider)
+                                <div class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex-shrink-0">
+                                            @if($provider->is_default)
+                                                <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                                    <x-heroicon-o-check-circle class="w-6 h-6 text-green-600 dark:text-green-400" />
+                                                </div>
+                                            @else
+                                                <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                                    <x-heroicon-o-chat-bubble-left-right class="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                    {{ $provider->name }}
+                                                </h5>
+                                                @if($provider->is_default)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                                        Default
+                                                    </span>
+                                                @endif
+                                                @if(!$provider->is_active)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400">
+                                                        Inactive
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                {{ ucfirst($provider->provider_type) }}
+                                                @if($provider->description)
+                                                    · {{ $provider->description }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ route('filament.admin.resources.sms-providers.edit', ['record' => $provider->id]) }}">
+                                            <x-filament::button size="sm" color="gray" outlined>
+                                                <x-heroicon-o-pencil class="w-3 h-3 mr-1" />
+                                                Edit
+                                            </x-filament::button>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="pt-4">
+                            <a href="{{ route('filament.admin.resources.sms-providers.create') }}">
+                                <x-filament::button color="gray" outlined>
+                                    <x-heroicon-o-plus class="w-4 h-4 mr-1" />
+                                    Add Another Provider
+                                </x-filament::button>
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </x-filament::section>
         @endif
 
         {{-- SMS Notifications Tab --}}
