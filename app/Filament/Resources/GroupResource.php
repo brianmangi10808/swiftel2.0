@@ -11,6 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class GroupResource extends Resource
@@ -18,11 +20,30 @@ class GroupResource extends Resource
     protected static ?string $model = Group::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
+       protected static ?string $navigationGroup = 'Area';
+           protected static ?int $navigationSort = 30;
+
+public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = Auth::user();
+
+    // ✅ Super Admin → sees all tickets
+    if ($user?->is_super_admin) {
+        return $query;
+    }
+
+    // ✅ Company users → only their company tickets
+    return $query->where('company_id', $user->company_id);
+}
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                         Forms\Components\Hidden::make('company_id')
+    ->default(fn () => Auth::user()?->company_id),
+
                  Forms\Components\TextInput::make('name')
                 ->label('Group Name')
                 ->required()
@@ -39,6 +60,11 @@ class GroupResource extends Resource
     {
         return $table
             ->columns([
+                                            TextColumn::make('company.name')
+    ->label('Company')
+    ->sortable()
+    ->toggleable()
+    ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
                  Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
             Tables\Columns\TextColumn::make('description')->limit(40),
             Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Created'),

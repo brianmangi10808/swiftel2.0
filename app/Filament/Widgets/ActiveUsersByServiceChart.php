@@ -5,45 +5,57 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\ChartWidget;
 use App\Models\Customer;
 use App\Models\Service;
+use Illuminate\Support\Facades\Auth;
 
 class ActiveUsersByServiceChart extends ChartWidget
 {
     protected static ?string $heading = 'Active Users by Service';
     protected static ?string $description = 'Distribution of active customers across services.';
 
-    // Remove the chartHeight property - let it use default height
-    // This will match the height of bar charts and line charts
-
     public function getColumnSpan(): int|string|array
     {
-        return 'half'; // Takes up half the width
+        return 'half';
     }
 
     protected function getData(): array
     {
-        $services = Service::all();
+        $user = Auth::user();
+
+        // ✅ Company scoped services
+        $services = $user->is_super_admin
+            ? Service::all()
+            : Service::where('company_id', $user->company_id)->get();
 
         return [
             'labels' => $services->pluck('name')->toArray(),
             'datasets' => [
                 [
                     'label' => 'Active Users',
-                    'data' => $services->map(function ($s) {
-                        return Customer::where('service_id', $s->id)
-                            ->where('expiry_date', '>=', now())
-                            ->count();
+                    'data' => $services->map(function ($service) use ($user) {
+
+                        $query = Customer::where('service_id', $service->id)
+                            ->where('expiry_date', '>=', now());
+
+                        // ✅ Lock customers to company unless super admin
+                        if (! $user->is_super_admin) {
+                            $query->where('company_id', $user->company_id);
+                        }
+
+                        return $query->count();
+
                     })->toArray(),
+
                     'backgroundColor' => [
-                        '#3b82f6', // blue
-                        '#22c55e', // green
-                        '#f59e0b', // amber
-                        '#ef4444', // red
-                        '#8b5cf6', // violet
-                        '#ec4899', // pink
-                        '#14b8a6', // teal
-                        '#f97316', // orange
-                        '#06b6d4', // cyan
-                        '#6366f1', // indigo
+                        '#3b82f6',
+                        '#22c55e',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#8b5cf6',
+                        '#ec4899',
+                        '#14b8a6',
+                        '#f97316',
+                        '#06b6d4',
+                        '#6366f1',
                     ],
                 ],
             ],
@@ -65,7 +77,7 @@ class ActiveUsersByServiceChart extends ChartWidget
                 ],
             ],
             'maintainAspectRatio' => true,
-            'aspectRatio' => 2, // Adjust this to control height (lower = taller)
+            'aspectRatio' => 2,
         ];
     }
 }

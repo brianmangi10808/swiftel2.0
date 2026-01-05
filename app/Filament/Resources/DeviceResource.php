@@ -11,6 +11,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use RouterOS\Client;
 use RouterOS\Query;
@@ -19,15 +21,30 @@ use RouterOS\Query;
 class DeviceResource extends Resource
 {
     protected static ?string $model = Device::class;
-
+      protected static ?int $navigationSort = 41;
     protected static ?string $navigationIcon = 'heroicon-o-server';
     protected static ?string $navigationGroup = 'Network Devices';
     protected static ?string $navigationLabel = 'MikroTik Devices';
+public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = Auth::user();
+
+    // Super Admin → sees all tickets
+    if ($user?->is_super_admin) {
+        return $query;
+    }
+
+    // Company users → only their company tickets
+    return $query->where('company_id', $user->company_id);
+}
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                                Forms\Components\Hidden::make('company_id')
+    ->default(fn () => Auth::user()?->company_id),
                  Forms\Components\TextInput::make('name')
                 ->required()
                 ->label('Device Name')
@@ -71,6 +88,11 @@ class DeviceResource extends Resource
     {
         return $table
             ->columns([
+                                                           TextColumn::make('company.name')
+    ->label('Company')
+    ->sortable()
+    ->toggleable()
+    ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
                  Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
             Tables\Columns\TextColumn::make('ip_address')->sortable(),
             Tables\Columns\TextColumn::make('location')->limit(30),

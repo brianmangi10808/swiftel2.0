@@ -11,6 +11,7 @@ class Device extends Model
 
      use HasFactory;
       protected $fillable = [
+         'company_id',
         'name',
         'ip_address',
         'username',
@@ -27,4 +28,43 @@ class Device extends Model
     protected $casts = [
         'status' => 'string',
     ];
+
+           protected static function booted()
+{
+    static::created(function ($model) {
+        log_activity(
+            'created',
+            'Created new device',
+            get_class($model),
+            $model->id,   // device ID
+            $model->toArray()
+        );
+    });
+
+    static::updated(function ($model) {
+        log_activity(
+            'updated',
+            'Updated device',
+            get_class($model),
+            $model->id,   
+            [
+                'old' => $model->getOriginal(),
+                'new' => $model->getChanges(),
+            ]
+        );
+    });
+
+    static::deleted(function ($model) {
+        log_activity(
+            'deleted',
+            'Deleted device',
+            get_class($model),
+            $model->id    
+        );
+    });
+}
+   public function company()
+{
+    return $this->belongsTo(\App\Models\Company::class);
+}
 }

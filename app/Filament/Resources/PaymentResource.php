@@ -10,18 +10,37 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\DatePicker;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class PaymentResource extends Resource
 {
     protected static ?string $model = Payment::class;
+        protected static ?int $navigationSort = 29;
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
     protected static ?string $navigationGroup = 'Finance';
     protected static ?string $navigationLabel = 'Payments';
 
+    public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = Auth::user();
+
+    // ✅ Super Admin → sees all tickets
+    if ($user?->is_super_admin) {
+        return $query;
+    }
+
+    // ✅ Company users → only their company tickets
+    return $query->where('company_id', $user->company_id);
+}
+
     public static function form(Form $form): Form
     {
         return $form->schema([
+              Forms\Components\Hidden::make('company_id')
+    ->default(fn () => Auth::user()?->company_id),
             Forms\Components\TextInput::make('transaction_type')->maxLength(50)->disabled(),
          
             Forms\Components\TextInput::make('trans_amount')->numeric()->prefix('KSH')->disabled(),
@@ -36,6 +55,11 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
+              Tables\Columns\TextColumn::make('company.name')
+    ->label('Company')
+    ->sortable()
+    ->toggleable()
+    ->visible(fn () => Auth::user()?->is_super_admin),
             Tables\Columns\TextColumn::make('trans_id')->label('Transaction ID')->searchable()->sortable()->disabled(),
             Tables\Columns\TextColumn::make('first_name')->label('First Name')->searchable()->disabled(),
           

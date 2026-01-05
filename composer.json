@@ -7,12 +7,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "bezhansalleh/filament-shield": "^3.9",
         "evilfreelancer/routeros-api-php": "^1.6",
         "filament/filament": "^3.2",
         "filament/tables": "^3.3",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "owen-it/laravel-auditing": "^14.0"
+        "owen-it/laravel-auditing": "^14.0",
+        "spatie/laravel-permission": "^6.23"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -28,7 +30,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+          "files": [
+        "app/Helpers/activity.php"
+    ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -10,6 +10,7 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CustomerResource;
@@ -20,25 +21,48 @@ class TicketsResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Tickets';
     protected static ?string $pluralLabel = 'Tickets';
+     protected static ?int $navigationSort = 3;
+      protected static ?string $navigationGroup = 'Customers';
     protected static ?string $modelLabel = 'Ticket';
 
+public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = Auth::user();
+
+    // ✅ Super Admin → sees all tickets
+    if ($user?->is_super_admin) {
+        return $query;
+    }
+
+    // ✅ Company users → only their company tickets
+    return $query->where('company_id', $user->company_id);
+}
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-          
+             Forms\Components\Hidden::make('company_id')
+    ->default(fn () => Auth::user()?->company_id),
                     Forms\Components\Select::make('customer_id')
     ->label('Customer')
     ->relationship(
         name: 'customer',
         titleAttribute: 'firstname',
-        modifyQueryUsing: fn ($query) => $query->select('id', 'firstname', 'lastname')
+  modifyQueryUsing: fn ($query) => $query
+            ->when(
+                ! Auth::user()?->is_super_admin,
+                fn ($q) => $q->where('company_id', Auth::user()->company_id)
+            )
+            ->select(['id', 'firstname', 'lastname'])
     )
     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->firstname} {$record->lastname}")
 ->searchable()
+->preload()
     ->required(),
 
-
+                  
+              
 
                 Forms\Components\Select::make('severity')
                     ->label('Severity')
@@ -77,6 +101,12 @@ Forms\Components\Textarea::make('resolution_notes')
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('company.name')
+    ->label('Company')
+    ->sortable()
+    ->toggleable()
+    ->visible(fn () => Auth::user()?->is_super_admin),
+
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
                     ->sortable(),
@@ -166,9 +196,9 @@ Forms\Components\Textarea::make('resolution_notes')
                     $record->save();
 
                     // If send_sms is checked, trigger SMS notification
-                    if ($data['send_sms'] ?? false) {
-                      
-                    }
+                   if ($data['send_sms'] ?? false) {
+        $record->sendTicketSms('ticket_resolved');
+    }
 
                     
                 }),

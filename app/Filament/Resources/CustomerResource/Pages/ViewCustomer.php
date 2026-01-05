@@ -29,43 +29,10 @@ class ViewCustomer extends ViewRecord
                     ->color('primary'),
 
                 // Send Expiry Message
-                Actions\Action::make('sendExpiryMessage')
-                    ->label('Send Expiry Message')
-                    ->icon('heroicon-o-envelope')
-                    ->color('info')
-                    ->modalHeading('Send Expiry Notification')
-                    ->form([
-                        Forms\Components\Textarea::make('message')
-                            ->default("Hello {$this->record->username}, your subscription is nearing expiry.")
-                            ->required(),
-                    ])
-                    ->action(function (array $data) {
-                        // send SMS or email here
-                        Notification::make()
-                            ->title('Message Sent')
-                            ->body('Expiry message has been sent to the customer.')
-                            ->success()
-                            ->send();
-                    }),
+         
 
                 // Send Custom Message
-                Actions\Action::make('sendCustomMessage')
-                    ->label('Send Custom Message')
-                    ->icon('heroicon-o-chat-bubble-left-right')
-                    ->color('success')
-                    ->form([
-                        Forms\Components\Textarea::make('message')
-                            ->label('Custom Message')
-                            ->placeholder('Type your message...')
-                            ->required(),
-                    ])
-                    ->action(function (array $data) {
-                        // send custom SMS/email
-                        Notification::make()
-                            ->title('Custom Message Sent')
-                            ->success()
-                            ->send();
-                    }),
+           
 
                 // Create Ticket - UPDATED VERSION
                 Actions\Action::make('createTicket')
@@ -160,10 +127,10 @@ class ViewCustomer extends ViewRecord
                         ]);
 
                         // Send SMS if checkbox is checked
-                        if ($data['notify_sms'] ?? false) {
-                            // Add your SMS notification logic here
-                            // Example: Notification::route('sms', $this->record->phone)->notify(new TicketCreatedNotification($ticket));
-                        }
+                      if ($data['notify_sms'] ?? false) {
+                      $ticket->sendTicketSms('ticket_created');
+                         }
+
 
                         // Show success notification with link to view ticket
                         Notification::make()

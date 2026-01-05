@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Providers;
+use App\Models\SmsGateway;
+use App\Observers\SmsGatewayObserver;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+           SmsGateway::observe(SmsGatewayObserver::class);
+           
     }
 }

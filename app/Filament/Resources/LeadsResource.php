@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Filament\Resources;
-
+use Illuminate\Support\Facades\Auth;
 use App\Filament\Resources\LeadsResource\Pages;
 use App\Filament\Resources\LeadsResource\RelationManagers;
 use App\Models\Leads;
@@ -16,6 +16,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -25,18 +26,53 @@ class LeadsResource extends Resource
     protected static ?string $model = Leads::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+     protected static ?string $navigationGroup = 'Customers';
+      protected static ?int $navigationSort = 2;
+
+public static function canAccess(): bool
+{
+    return \Illuminate\Support\Facades\Auth::check();
+}
+
+public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = \Illuminate\Support\Facades\Auth::user();
+
+    if ($user?->is_super_admin) {
+        return $query;
+    }
+
+    return $query->where('company_id', $user->company_id);
+}
+
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                 Forms\Components\Hidden::make('company_id')
+    ->default(fn () => Auth::user()?->company_id),
+
+
                 TextInput::make('firstname')->required(),
                 TextInput::make('lastname')->required(),
                 TextInput::make('email'),
                 TextInput::make('mobile_number')->required(),
-                Select::make('sector_id')
-                    ->label('sector')
-                    ->relationship('sector', 'name'),
+                   Forms\Components\Select::make('sector_id')
+    ->label('Sector')
+    ->relationship(
+        name: 'sector',
+        titleAttribute: 'name',
+        modifyQueryUsing: function ($query) {
+            $user = Auth::user(); 
+
+            if (! $user?->is_super_admin) {
+                $query->where('company_id', $user->company_id);
+            }
+        }
+    )
+    ->required(),
             ]);
     }
 
@@ -44,6 +80,12 @@ class LeadsResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('company.name')
+    ->label('Company')
+    ->sortable()
+    ->toggleable()
+    ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
+
                 TextColumn::make('firstname')->searchable(),
                 TextColumn::make('lastname')->searchable(),
                 TextColumn::make('email'),
@@ -71,6 +113,10 @@ class LeadsResource extends Resource
                     ->icon('heroicon-o-user-plus')
                     ->color('success')
                     ->form([
+               Forms\Components\Hidden::make('company_id')
+    ->default(fn () => \Illuminate\Support\Facades\Auth::user()?->company_id),
+
+
                         Forms\Components\TextInput::make('firstname')
                             ->default(fn ($record) => $record->firstname)
                             ->required(),
@@ -88,35 +134,73 @@ class LeadsResource extends Resource
                             ->label('Password')
                             ->helperText('Auto-generated password, unique for each customer'),
 
-                        Forms\Components\TextInput::make('status')
-                            ->default('offline'),
+                        // Forms\Components\TextInput::make('status')
+                        //     ->default('offline'),
 
                         Forms\Components\TextInput::make('mobile_number')
                             ->default(fn ($record) => $record->mobile_number),
 
-                        Forms\Components\Select::make('sector_id')
-                            ->label('Sector')
-                            ->relationship('sector', 'name')
-                            ->default(fn ($record) => $record->sector_id)
-                            ->required(),
+                              Forms\Components\Select::make('sector_id')
+    ->label('Sector')
+    ->relationship(
+        name: 'sector',
+        titleAttribute: 'name',
+        modifyQueryUsing: function ($query) {
+            $user = Auth::user(); 
 
-                        Forms\Components\Select::make('service_id')
-                            ->label('Service')
-                            ->relationship('service', 'name')
-                            ->required(),
+            if (! $user?->is_super_admin) {
+                $query->where('company_id', $user->company_id);
+            }
+        }
+    )
+    ->required(),
+                                             
+                                                Forms\Components\Select::make('service_id')
+    ->label('Service')
+    ->relationship(
+        name: 'service',
+        titleAttribute: 'name',
+        modifyQueryUsing: function ($query) {
+            $user = Auth::user(); 
 
-                        Forms\Components\Select::make('group_id')
-                            ->label('Group')
-                            ->relationship('group', 'name')
-                            ->required(),
+            if (! $user?->is_super_admin) {
+                $query->where('company_id', $user->company_id);
+            }
+        }
+    )
+    ->required(),
+                       
+                  Forms\Components\Select::make('group_id')
+    ->label('Group')
+    ->relationship(
+        name: 'group',
+        titleAttribute: 'name',
+        modifyQueryUsing: function ($query) {
+            $user = Auth::user(); 
 
-                        Forms\Components\Select::make('premise_id')
-                            ->label('Premise')
-                            ->relationship('premise', 'name')
-                            ->required(),
+            if (! $user?->is_super_admin) {
+                $query->where('company_id', $user->company_id);
+            }
+        }
+    )
+    ->required(),
+                    Forms\Components\Select::make('premise_id')
+    ->label('Premise')
+    ->relationship(
+        name: 'premise',
+        titleAttribute: 'name',
+        modifyQueryUsing: function ($query) {
+            $user = Auth::user(); 
 
-                        Forms\Components\TextInput::make('Calling_Station_Id')
-                            ->label('Mac Address'),
+            if (! $user?->is_super_admin) {
+                $query->where('company_id', $user->company_id);
+            }
+        }
+    )
+    ->required(),
+                      
+                        // Forms\Components\TextInput::make('Calling_Station_Id')
+                        //     ->label('Mac Address'),
 
                         Forms\Components\DatePicker::make('expiry_date')
                             ->label('Expiry Date')
@@ -124,6 +208,7 @@ class LeadsResource extends Resource
 
                         Forms\Components\TextInput::make('credit')
                             ->numeric()
+                            ->required()
                             ->label('Credit Balance'),
 
                         Forms\Components\TextInput::make('email')

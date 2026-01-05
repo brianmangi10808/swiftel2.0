@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ExpirySnapshot extends Model
 {
      protected $fillable = [
+            'company_id',
         'snapshot_date',
         'currently_expired',
         'renewed_today',

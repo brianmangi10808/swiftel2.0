@@ -5,15 +5,30 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use App\Models\Customer;
+use Illuminate\Support\Facades\Auth;
+
 
 class IspOverview extends BaseWidget
 {
+
+    
     protected function getStats(): array
     {
-        $total = Customer::count();
-        $online = Customer::where('status', 'online')->count();
-        $offline = Customer::where('status', 'offline')->count();
-        $expired = Customer::where('expiry_date', '<', now())->count();
+         // Base query — always scoped to the current user's company
+        $query = Customer::query();
+
+        $user = Auth::user();
+
+        // Super admin sees ALL companies
+        if (!$user?->is_super_admin) {
+            $query->where('company_id', $user->company_id);
+        }
+
+       $total   = (clone $query)->count();
+        $online  = (clone $query)->where('status', 'online')->count();
+        $offline = (clone $query)->where('status', 'offline')->count();
+        $expired = (clone $query)->where('expiry_date', '<', now())->count();
+
 
         return [
             Stat::make('Total Customers', $total)

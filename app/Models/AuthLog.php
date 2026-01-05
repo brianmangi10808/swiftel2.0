@@ -22,11 +22,5 @@ class AuthLog extends Model
         'created_at'
     ];
 
-    //    protected $hidden = [
-    //     'password', 
-    // ];
-
-    // protected $casts = [
-    //     'status' => 'string',
-    // ];
+ 
 }

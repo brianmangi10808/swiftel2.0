@@ -10,6 +10,7 @@ class Payment extends Model
     use HasFactory;
 
     protected $fillable = [
+         'company_id',
         'transaction_type',
         'trans_id',
         'trans_time',
@@ -24,4 +25,45 @@ class Payment extends Model
         'middle_name',
         'last_name',
     ];
+
+
+    protected static function booted()
+{
+    static::created(function ($model) {
+        log_activity(
+            'created',
+            'Created new Payments',
+            get_class($model),
+            $model->bill_ref_number,
+            $model->toArray()
+        );
+    });
+
+    static::updated(function ($model) {
+        log_activity(
+            'updated',
+            'Updated Paments',
+            get_class($model),
+            $model->bill_ref_number,
+            [
+                'old' => $model->getOriginal(),
+                'new' => $model->getChanges(),
+            ]
+        );
+    });
+
+    static::deleted(function ($model) {
+        log_activity(
+            'deleted',
+            'Deleted Payments',
+            get_class($model),
+            $model->bill_ref_number
+        );
+    });
+}
+
+public function company()
+{
+    return $this->belongsTo(\App\Models\Company::class);
+}
 }

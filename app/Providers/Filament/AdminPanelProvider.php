@@ -11,6 +11,8 @@ use Filament\Panel;
 use Filament\Navigation\MenuItem;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use App\Models\SmsGateway;
+use App\Observers\SmsGatewayObserver;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -19,8 +21,21 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+use Filament\Support\Facades\FilamentAsset;
+
+use Filament\Support\Assets\Js;
+use Filament\Support\Assets\Css;
+
 class AdminPanelProvider extends PanelProvider
 {
+public function boot(): void
+{
+    FilamentAsset::register([
+        Js::make('chartjs', 'https://cdn.jsdelivr.net/npm/chart.js'),
+        Js::make('live-traffic', asset('js/live-traffic.js')),
+    ], 'swiftel-assets');
+}
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -54,7 +69,14 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Settings')
                     ->url(fn () => \App\Filament\Pages\Settings::getUrl())
                     ->icon('heroicon-o-cog-6-tooth'),
+                     'users' => MenuItem::make()
+                    ->label('Users')
+                           // ->url(fn () => route('filament.admin.pages.users')) // 🔥 CORRECT ROUTE
+
+                    ->icon('heroicon-o-cog-6-tooth'),
             ])
+
+
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -65,10 +87,12 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                  \App\Http\Middleware\LogUserActivity::class,
             ])
             ->authMiddleware([
                 Authenticate::class,
             ]);
+            
             
     }
 }

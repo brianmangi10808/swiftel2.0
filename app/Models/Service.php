@@ -10,6 +10,7 @@ class Service extends Model
     use HasFactory;
 
     protected $fillable = [
+          'company_id',
         'name',
         'price',
         'speed_limit',
@@ -24,5 +25,42 @@ class Service extends Model
         'fup_limit' => 'integer',
     ];
 
+      protected static function booted()
+{
+    static::created(function ($model) {
+        log_activity(
+            'created',
+            'Created new service',
+            get_class($model),
+            $model->id,   // service ID
+            $model->toArray()
+        );
+    });
 
+    static::updated(function ($model) {
+        log_activity(
+            'updated',
+            'Updated service',
+            get_class($model),
+            $model->id,   // service ID
+            [
+                'old' => $model->getOriginal(),
+                'new' => $model->getChanges(),
+            ]
+        );
+    });
+
+    static::deleted(function ($model) {
+        log_activity(
+            'deleted',
+            'Deleted service',
+            get_class($model),
+            $model->id    // service ID
+        );
+    });
+}
+   public function company()
+{
+    return $this->belongsTo(\App\Models\Company::class);
+}
 }

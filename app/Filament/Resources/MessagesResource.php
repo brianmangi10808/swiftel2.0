@@ -8,6 +8,7 @@ use App\Models\Messages;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Auth;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
@@ -19,6 +20,22 @@ class MessagesResource extends Resource
     protected static ?string $model = Messages::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+     protected static ?string $navigationGroup = 'Communication';
+         protected static ?int $navigationSort = 22;
+
+public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = Auth::user();
+
+    // ✅ Super Admin → sees all tickets
+    if ($user?->is_super_admin) {
+        return $query;
+    }
+
+    // ✅ Company users → only their company tickets
+    return $query->where('company_id', $user->company_id);
+}
 
     public static function form(Form $form): Form
     {
@@ -32,7 +49,12 @@ class MessagesResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("id"),
+                            TextColumn::make('company.name')
+    ->label('Company')
+    ->sortable()
+    ->toggleable()
+    ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
+          //      TextColumn::make("id"),
                 TextColumn::make("recipient"),
                 TextColumn::make("message_body"),
                // TextColumn::make("channel"),
@@ -43,12 +65,12 @@ class MessagesResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+               // Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+               // Tables\Actions\BulkActionGroup::make([
+                   // Tables\Actions\DeleteBulkAction::make(),
+              //  ]),
             ]);
     }
 
@@ -63,8 +85,8 @@ class MessagesResource extends Resource
     {
         return [
             'index' => Pages\ListMessages::route('/'),
-            'create' => Pages\CreateMessages::route('/create'),
-            'edit' => Pages\EditMessages::route('/{record}/edit'),
+            //'create' => Pages\CreateMessages::route('/create'),
+           // 'edit' => Pages\EditMessages::route('/{record}/edit'),
         ];
     }
 }

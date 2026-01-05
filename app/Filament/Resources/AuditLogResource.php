@@ -19,6 +19,8 @@ class AuditLogResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationGroup = 'System Logs';
+        protected static ?int $navigationSort = 51;
+
     protected static ?string $navigationLabel = 'Audit Logs';
     
 

@@ -3,11 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Http;
+
+
+use App\Models\SmsTemplate;
+use App\Services\SmsGatewayService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
+use App\Models\SmsProvider;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
-use OwenIt\Auditing\Auditable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class Customer extends Model
 {
@@ -16,6 +22,7 @@ class Customer extends Model
 
    
     protected $fillable = [
+         'company_id',
         'username',
         'password',
         'status',
@@ -39,24 +46,105 @@ class Customer extends Model
         
     ];
 
-       protected $auditInclude = [
-        'username',
-        'status',
-        'enable',
-        'service_id',
-        'expiry_date',
-        'credit',
-        'firstname',
-        'lastname',
-        'mobile_number',
-        'email',
-    ];
 
     protected $casts = [
         'enable' => 'boolean',
         'expiry_date' => 'datetime',
     ];
         protected $dates = ['deleted_at'];
+
+        protected static function booted()
+{
+    static::created(function ($model) {
+        log_activity(
+            'created',
+            'Created new customer',
+            get_class($model),
+            $model->id,   // customer ID
+            $model->toArray()
+        );
+    });
+
+    static::updated(function ($model) {
+        log_activity(
+            'updated',
+            'Updated customer',
+            get_class($model),
+            $model->id,   // customer ID
+            [
+                'old' => $model->getOriginal(),
+                'new' => $model->getChanges(),
+            ]
+        );
+    });
+
+    static::deleted(function ($model) {
+        log_activity(
+            'deleted',
+            'Deleted customer',
+            get_class($model),
+            $model->id    // customer ID
+        );
+    });
+}
+
+
+
+public function sendSmsFromTemplate(string $type): bool
+{
+    $template = \App\Models\SmsTemplate::where('type', $type)
+        ->where('active', true)
+        ->first();
+
+    if (! $template) {
+        return false;
+    }
+
+    $message = $this->processSmsTemplate($template->template);
+
+    return app(\App\Services\SmsGatewayService::class)
+        ->sendSms($this->mobile_number, $message);
+}
+protected function processSmsTemplate(string $template): string
+{
+    $replacements = [
+        '{firstname}'    => $this->firstname ?? '',
+        '{lastname}'     => $this->lastname ?? '',
+        '{username}'     => $this->username ?? '',
+        '{expiry_date}'  => optional($this->expiry_date)->format('Y-m-d'),
+        '{service}'      => $this->service->name ?? '',
+        '{sector}'       => $this->sector->name ?? '',
+        '{group}'        => $this->group->name ?? '',
+        '{credit}'       => $this->credit ?? '',
+        '{email}'        => $this->email ?? '',
+        '{mobile_number}' => $this->mobile_number ?? '',
+    ];
+
+    return str_replace(
+        array_keys($replacements),
+        array_values($replacements),
+        $template
+    );
+}
+
+  public function sendPruneNoticeSms(): bool
+    {
+        return $this->sendSmsFromTemplate('prune_notice');
+    }
+
+
+public function sendCustomSms(string $message): bool
+{
+    if (! $this->mobile_number) {
+        return false;
+    }
+
+    
+    $gatewayService = App::make(SmsGatewayService::class);
+
+    return $gatewayService->sendSms($this->mobile_number, $message);
+}
+
 
 
    
@@ -102,6 +190,12 @@ class Customer extends Model
 {
     return $this->hasMany(Tickets::class);
 }
+
+public function company()
+{
+    return $this->belongsTo(\App\Models\Company::class);
+}
+
 
 }
 

@@ -10,6 +10,7 @@ class Sector extends Model
     use HasFactory;
 
     protected $fillable = [
+          'company_id',
         'name',
         'description',
     ];
@@ -26,4 +27,42 @@ class Sector extends Model
     {
         return $this->hasMany(Leads::class);
     }
+          protected static function booted()
+{
+    static::created(function ($model) {
+        log_activity(
+            'created',
+            'Created new sector',
+            get_class($model),
+            $model->id,   // sector ID
+            $model->toArray()
+        );
+    });
+
+    static::updated(function ($model) {
+        log_activity(
+            'updated',
+            'Updated sector',
+            get_class($model),
+            $model->id,   // sector ID
+            [
+                'old' => $model->getOriginal(),
+                'new' => $model->getChanges(),
+            ]
+        );
+    });
+
+    static::deleted(function ($model) {
+        log_activity(
+            'deleted',
+            'Deleted sector',
+            get_class($model),
+            $model->id    // sector ID
+        );
+    });
+}
+   public function company()
+{
+    return $this->belongsTo(\App\Models\Company::class);
+}
 }

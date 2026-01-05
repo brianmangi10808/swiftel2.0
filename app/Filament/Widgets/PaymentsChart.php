@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\ChartWidget;
 use App\Models\Payment;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentsChart extends ChartWidget
 {
@@ -27,15 +28,20 @@ class PaymentsChart extends ChartWidget
 
     protected function getData(): array
     {
-        // Get all payments and convert trans_time to Carbon instances
-        $payments = Payment::query()
-            ->orderBy('trans_time')
-            ->get()
-            ->map(function ($p) {
-                // Convert 20250102153035 → Carbon instance
-                $p->date = Carbon::createFromFormat('YmdHis', $p->trans_time);
-                return $p;
-            });
+       $user = Auth::user(); 
+
+$payments = Payment::query()
+    ->when(!$user->is_super_admin, function ($q) use ($user) {
+        return $q->where('company_id', $user->company_id);
+    })
+    ->orderBy('trans_time')
+    ->get()
+    ->map(function ($p) {
+        // Convert 20250102153035 → Carbon
+        $p->date = Carbon::createFromFormat('YmdHis', $p->trans_time);
+        return $p;
+    });
+
 
         // Filter payments based on selected time range
         $payments = $payments->filter(function ($p) {

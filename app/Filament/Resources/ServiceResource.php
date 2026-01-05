@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -21,12 +22,28 @@ class ServiceResource extends Resource
  protected static ?string $navigationIcon = 'heroicon-o-wifi';
     protected static ?string $navigationGroup = 'ISP Management';
     protected static ?string $navigationLabel = 'Services';
+        protected static ?int $navigationSort = 40;
     protected static ?string $pluralModelLabel = 'Services';
+public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = Auth::user();
+
+    // ✅ Super Admin → sees all tickets
+    if ($user?->is_super_admin) {
+        return $query;
+    }
+
+    // ✅ Company users → only their company tickets
+    return $query->where('company_id', $user->company_id);
+}
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                                Forms\Components\Hidden::make('company_id')
+    ->default(fn () => Auth::user()?->company_id),
                   Forms\Components\TextInput::make('name')
                 ->label('Service Name')
                 ->placeholder('home basic ')
@@ -66,6 +83,11 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
+                          Tables\Columns\TextColumn::make('company.name')
+    ->label('Company')
+    ->sortable()
+    ->toggleable()
+    ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
              Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('price')->money('KES', true)->sortable(),
                 Tables\Columns\TextColumn::make('speed_limit')->label('speed limit'),

@@ -12,18 +12,36 @@ use Filament\Tables;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PremiseResource extends Resource
 {
     protected static ?string $model = Premise::class;
-
+   protected static ?string $navigationGroup = 'Area';
     protected static ?string $navigationIcon = 'heroicon-o-home';
+        protected static ?int $navigationSort = 32;
+
+public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+    $user = Auth::user();
+
+    // ✅ Super Admin → sees all tickets
+    if ($user?->is_super_admin) {
+        return $query;
+    }
+
+    // ✅ Company users → only their company tickets
+    return $query->where('company_id', $user->company_id);
+}
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                                Forms\Components\Hidden::make('company_id')
+    ->default(fn () => Auth::user()?->company_id),
                  Forms\Components\TextInput::make('name')
                 ->label('Premise Name')
                 ->required()
@@ -52,6 +70,11 @@ class PremiseResource extends Resource
     {
         return $table
             ->columns([
+                    Tables\Columns\TextColumn::make('company.name')
+    ->label('Company')
+    ->sortable()
+    ->toggleable()
+    ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
                  Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('description')->limit(40),
                  Tables\Columns\TextColumn::make('status')

@@ -7,95 +7,111 @@ use App\Models\Customer;
 use App\Models\ExpirySnapshot;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerLineStats extends ChartWidget
 {
     protected static ?string $heading = 'Customer Trends';
     protected static ?int $sort = 2;
 
-    protected function getData(): array
-    {
-        $months = collect(range(5, 0))
-            ->map(function ($i) {
-                return Carbon::now()->subMonths($i);
-            });
+protected function getData(): array
+{
+     $user = Auth::user();
 
-        $labels = $months->map(fn($d) => $d->format('M Y'));
+    $months = collect(range(5, 0))->map(fn ($i) => Carbon::now()->subMonths($i));
+    $labels = $months->map(fn($d) => $d->format('M Y'));
 
-        // ✅ NEW CUSTOMERS per month
-        $newCustomers = $months->map(function ($month) {
-            return Customer::whereYear('created_at', $month->year)
-                ->whereMonth('created_at', $month->month)
-                ->count();
+    // ✅ BASE QUERY WITH MULTI-COMPANY SECURITY
+    $baseCustomerQuery = Customer::query()
+        ->when(!$user->is_super_admin, function ($q) use ($user) {
+            $q->where('company_id', $user->company_id);
         });
 
-        // ✅ RENEWALS per month (expiry_date increased)
-        $renewals = $months->map(function ($month) {
-            return Customer::whereYear('expiry_date', $month->year)
-                ->whereMonth('expiry_date', $month->month)
-                ->whereRaw('DATE(expiry_date) != DATE(created_at)')
-                ->count();
-        });
+    // ✅ NEW CUSTOMERS per month
+    $newCustomers = $months->map(function ($month) use ($baseCustomerQuery) {
+        return (clone $baseCustomerQuery)
+            ->whereYear('created_at', $month->year)
+            ->whereMonth('created_at', $month->month)
+            ->count();
+    });
 
-        // ✅ CHURN per month (users expired & not renewed)
-        $churned = $months->map(function ($month) {
-            return Customer::whereDate('expiry_date', '<=', $month->endOfMonth())
-                ->whereDoesntHave('payments')   // no renewal
-                ->count();
-        });
+    // ✅ RENEWALS per month
+    $renewals = $months->map(function ($month) use ($baseCustomerQuery) {
+        return (clone $baseCustomerQuery)
+            ->whereYear('expiry_date', $month->year)
+            ->whereMonth('expiry_date', $month->month)
+            ->whereRaw('DATE(expiry_date) != DATE(created_at)')
+            ->count();
+    });
 
-        // ✅ ACTIVE USERS (from your ExpirySnapshot table)
-        $activeUsers = $months->map(function ($month) {
-            $snap = ExpirySnapshot::whereDate('snapshot_date', $month->format('Y-m-d'))->first();
-            return $snap->active_users ?? 0;
-        });
+    // ✅ CHURN per month
+    $churned = $months->map(function ($month) use ($baseCustomerQuery) {
+        return (clone $baseCustomerQuery)
+            ->whereDate('expiry_date', '<=', $month->endOfMonth())
+            ->whereDoesntHave('payments')
+            ->count();
+    });
 
-        // ✅ RETENTION RATE:
-        //     retention = (1 - churn / (active last month)) * 100
-        $retention = collect();
-        for ($i = 0; $i < count($activeUsers); $i++) {
-            $lastActive = $activeUsers[$i - 1] ?? $activeUsers[$i];
-            $churn = $churned[$i];
+    // ✅ ACTIVE USERS (also company-scoped)
+    $activeUsers = $months->map(function ($month) use ($user) {
 
-            $rate = $lastActive == 0 ? 0 : round((1 - ($churn / $lastActive)) * 100, 1);
-            $retention->push($rate);
-        }
+        $snap = ExpirySnapshot::query()
+            ->when(!$user->is_super_admin, fn ($q) =>
+                $q->where('company_id', $user->company_id)
+            )
+            ->whereDate('snapshot_date', $month->format('Y-m-d'))
+            ->first();
 
-        return [
-            'datasets' => [
-                [
-                    'label' => 'New Customers',
-                    'data' => $newCustomers,
-                    'borderColor' => '#3b82f6',
-                    'backgroundColor' => 'transparent',
-                    'yAxisID' => 'y',
-                ],
-                [
-                    'label' => 'Renewals',
-                    'data' => $renewals,
-                    'borderColor' => '#22c55e',
-                    'backgroundColor' => 'transparent',
-                    'yAxisID' => 'y',
-                ],
-                [
-                    'label' => 'Churned',
-                    'data' => $churned,
-                    'borderColor' => '#ef4444',
-                    'backgroundColor' => 'transparent',
-                    'yAxisID' => 'y',
-                ],
-                [
-                    'label' => 'Retention Rate (%)',
-                    'data' => $retention,
-                    'borderColor' => '#fbbf24',
-                    'backgroundColor' => 'transparent',
-                    'borderDash' => [5,5],
-                    'yAxisID' => 'y1',
-                ],
-            ],
-            'labels' => $labels,
-        ];
+        return $snap->active_users ?? 0;
+    });
+
+    // ✅ RETENTION RATE
+    $retention = collect();
+
+    for ($i = 0; $i < count($activeUsers); $i++) {
+        $lastActive = $activeUsers[$i - 1] ?? $activeUsers[$i];
+        $churn = $churned[$i];
+
+        $rate = $lastActive == 0 ? 0 : round((1 - ($churn / $lastActive)) * 100, 1);
+        $retention->push($rate);
     }
+
+    return [
+        'datasets' => [
+            [
+                'label' => 'New Customers',
+                'data' => $newCustomers,
+                'borderColor' => '#3b82f6',
+                'backgroundColor' => 'transparent',
+                'yAxisID' => 'y',
+            ],
+            [
+                'label' => 'Renewals',
+                'data' => $renewals,
+                'borderColor' => '#22c55e',
+                'backgroundColor' => 'transparent',
+                'yAxisID' => 'y',
+            ],
+            [
+                'label' => 'Churned',
+                'data' => $churned,
+                'borderColor' => '#ef4444',
+                'backgroundColor' => 'transparent',
+                'yAxisID' => 'y',
+            ],
+            [
+                'label' => 'Retention Rate (%)',
+                'data' => $retention,
+                'borderColor' => '#fbbf24',
+                'backgroundColor' => 'transparent',
+                'borderDash' => [5,5],
+                'yAxisID' => 'y1',
+            ],
+        ],
+        'labels' => $labels,
+    ];
+}
+
 
     protected function getType(): string
     {

@@ -5,7 +5,7 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\ChartWidget;
 use App\Models\Customer;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Auth;
 class NewCustomersChart extends ChartWidget
 {
     protected static ?string $heading = 'New Customers';
@@ -27,16 +27,18 @@ class NewCustomersChart extends ChartWidget
 
     protected function getData(): array
     {
-        // Get all customers with their created_at timestamps
-        $customers = Customer::query()
-            ->orderBy('created_at')
-            ->get()
-            ->map(function ($customer) {
-                // Ensure created_at is a Carbon instance
-                $customer->date = Carbon::parse($customer->created_at);
-                return $customer;
-            });
-
+        $user = Auth::user();
+    // ✅ Multi-company filtering applied here
+    $customers = Customer::query()
+        ->when(!$user->is_super_admin, function ($q) use ($user) {
+            return $q->where('company_id', $user->company_id);
+        })
+        ->orderBy('created_at')
+        ->get()
+        ->map(function ($customer) {
+            $customer->date = Carbon::parse($customer->created_at);
+            return $customer;
+        });
         // Filter customers based on selected time range
         $customers = $customers->filter(function ($customer) {
             switch ($this->filter) {
