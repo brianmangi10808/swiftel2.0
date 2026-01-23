@@ -45,27 +45,35 @@ public static function getEloquentQuery(): Builder
             ->schema([
                                 Forms\Components\Hidden::make('company_id')
     ->default(fn () => Auth::user()?->company_id),
-                 Forms\Components\TextInput::make('name')
+                 Forms\Components\TextInput::make('nasname')
                 ->required()
-                ->label('Device Name')
+                ->label('nasname')
                 ->placeholder('e.g., CCR2116 Main Router'),
 
-            Forms\Components\TextInput::make('ip_address')
-                ->label('IP Address')
+            Forms\Components\TextInput::make('api_username')
+                ->label('api username')
                 ->required()
                 ->placeholder('e.g., 192.168.88.1'),
 
-            Forms\Components\TextInput::make('username')
-                ->label('Username')
+            Forms\Components\TextInput::make('shortname')
+                ->label('shortname')
                 ->required(),
 
-            Forms\Components\TextInput::make('password')
-                ->label('Password')
-                ->password()
+            Forms\Components\TextInput::make('secret')
+                ->label('secret')
+               
                 ->required(),
 
             Forms\Components\TextInput::make('location')
                 ->label('Location')
+                ->placeholder('e.g Data Center')
+                ->maxLength(255),
+                     Forms\Components\TextInput::make('type')
+                ->label('type')
+                ->placeholder('e.g Data Center')
+                ->maxLength(255),
+                     Forms\Components\TextInput::make('server')
+                ->label('server')
                 ->placeholder('e.g Data Center')
                 ->maxLength(255),
             
@@ -93,10 +101,11 @@ public static function getEloquentQuery(): Builder
     ->sortable()
     ->toggleable()
     ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
-                 Tables\Columns\TextColumn::make('name')->sortable()->searchable(),
-            Tables\Columns\TextColumn::make('ip_address')->sortable(),
-            Tables\Columns\TextColumn::make('location')->limit(30),
+                 Tables\Columns\TextColumn::make('nasname')->sortable()->searchable(),
+            Tables\Columns\TextColumn::make('api_username')->sortable(),
+            Tables\Columns\TextColumn::make('secret')->limit(30),
             Tables\Columns\TextColumn::make('status')
+            ->badge()
                 ->colors([
                     'success' => 'online',
                     'danger'  => 'offline',
@@ -110,43 +119,7 @@ public static function getEloquentQuery(): Builder
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                 Tables\Actions\Action::make('testConnection')
-        ->label('Test Connection')
-        ->icon('heroicon-o-wifi')
-        ->button()
-        ->color('info')
-        ->action(function ($record) {
-            try {
-                $client = new \RouterOS\Client([
-                    'host'    => $record->ip_address,
-                    'user'    => $record->username,
-                    'pass'    => $record->password,
-                    'port'    => $record->api_port,
-                    'timeout' => 3,
-                ]);
-
-                // Ask the router its identity (a harmless API query)
-                $query = new \RouterOS\Query('/system/identity/print');
-                $response = $client->query($query)->read();
-
-                $identity = $response[0]['name'] ?? 'Unknown';
-                $record->update(['status' => 'online']);
-
-                \Filament\Notifications\Notification::make()
-                    ->title("{$record->name} is ONLINE")
-                    ->body("Connected successfully as '{$identity}'")
-                    ->success()
-                    ->send();
-            } catch (\Throwable $e) {
-                $record->update(['status' => 'offline']);
-
-                \Filament\Notifications\Notification::make()
-                    ->title("{$record->name} is OFFLINE")
-                    ->body("Error: {$e->getMessage()}")
-                    ->danger()
-                    ->send();
-            }
-        }),
+                
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

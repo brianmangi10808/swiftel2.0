@@ -35,24 +35,25 @@
 <script>
 
 document.addEventListener("livewire:load", () => {
-    window.initTrafficChart(`{!! urldecode($pppoe) !!}`, `{{ $chartId }}`);
+    window.initTrafficChart("{!! urldecode($pppoe) !!}", "{{ $chartId }}", "{{ $companyId }}");
 });
 
 document.addEventListener("livewire:navigated", () => {
-    window.initTrafficChart(`{!! urldecode($pppoe) !!}`, `{{ $chartId }}`);
+    window.initTrafficChart("{!! urldecode($pppoe) !!}", "{{ $chartId }}", "{{ $companyId }}");
 });
 
 
 
 
 
-window.initTrafficChart = function(pppoeInterface, canvasId) {
 
-    console.log("Initializing smooth chart for:", pppoeInterface);
+window.initTrafficChart = function(pppoeInterface, canvasId, companyId) {
+
+    console.log("Initializing smooth chart for:", pppoeInterface, "Company ID:", companyId);
 
     const canvas = document.getElementById(canvasId);
     if (!canvas) {
-        setTimeout(() => window.initTrafficChart(pppoeInterface, canvasId), 300);
+        setTimeout(() => window.initTrafficChart(pppoeInterface, canvasId, companyId), 300);
         return;
     }
 
@@ -77,7 +78,7 @@ window.initTrafficChart = function(pppoeInterface, canvasId) {
         data: {
             datasets: [
                 {
-                    label: " Upload",
+                    label: "↑ Upload",
                     borderColor: "#ef4444",
                     backgroundColor: "rgba(239,68,68,0.15)",
                     data: [],
@@ -85,7 +86,7 @@ window.initTrafficChart = function(pppoeInterface, canvasId) {
                     tension: 0.4,
                 },
                 {
-                    label: " Download",
+                    label: "↓ Download",
                     borderColor: "#3b82f6",
                     backgroundColor: "rgba(59,130,246,0.15)",
                     data: [],
@@ -125,7 +126,7 @@ window.initTrafficChart = function(pppoeInterface, canvasId) {
     // ------------------------------
     async function fetchData() {
         try {
-            const resp = await fetch(`https://swiftel.co.ke/api/live-traffic/${pppoeInterface}`);
+            const resp = await fetch(`http://127.0.0.1:3000/api/live-traffic/${encodeURIComponent(pppoeInterface)}?company_id=${companyId}`);
             const d = await resp.json();
 
             const now = performance.now() / 1000;
@@ -145,7 +146,7 @@ window.initTrafficChart = function(pppoeInterface, canvasId) {
     }
 
     fetchData();
-    setInterval(fetchData, 1000);
+    setInterval(fetchData, 2000);
 
 
 

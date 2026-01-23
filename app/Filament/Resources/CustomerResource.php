@@ -18,7 +18,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Validation\Rules\Unique;
 use Filament\Forms\Components\DateTimePicker;
-
+use Filament\Tables\Columns\TextColumn;
+use Filament\Support\Enums\FontWeight;
+use Carbon\Carbon;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Forms\Components\Tabs;
@@ -150,7 +152,7 @@ public static function getEloquentQuery(): Builder
                      
                               
 
-                            Forms\Components\DatePicker::make('expiry_date')
+                            Forms\Components\DateTimePicker::make('expiry_date')
                                 ->label('Expiry Date')
                                 ->required()
                                  ->default(now()->addMonth()),
@@ -167,6 +169,15 @@ public static function getEloquentQuery(): Builder
                                Forms\Components\Toggle::make('allow_mac')
                                 ->label('Allow Mac Address')
                                 ->default(true),
+
+                                 Forms\Components\TextInput::make('simultaneous_use')
+                                ->numeric()
+                                ->label('simultaneous use ')
+                                ->required(),
+
+                                 Forms\Components\TextInput::make('Calling_Station_Id')
+                                ->label('Mac Address'),
+                                //->disabled(),
 
                                 Forms\Components\DatePicker::make('created_at')
                                 ->label('created_at')
@@ -196,6 +207,7 @@ public static function getEloquentQuery(): Builder
                                 
                                 return view('filament.tables.live-traffic', [
                                     'pppoe' => $pppoeInterface,
+                                    'companyId' => $record->company_id,
                                 ]);
                             })
                             ->columnSpanFull(),
@@ -243,6 +255,15 @@ Tabs\Tab::make('Messages')
             ]))
             ->columnSpanFull(),
     ]),
+    Tabs\Tab::make('Extensions')
+    ->icon('heroicon-m-clock')
+    ->schema([
+        Forms\Components\Placeholder::make('extensions ')
+            ->content(fn ($record) => view('filament.tables.extensions-table', [
+                'extensions' => $record?->extensions()->latest()->get() ?? collect([])
+            ]))
+            ->columnSpanFull(),
+    ]),
                   
                 ])
                 ->persistTabInQueryString()
@@ -267,7 +288,27 @@ Tabs\Tab::make('Messages')
                     ->copyMessageDuration(1500),
                 Tables\Columns\TextColumn::make('username')->searchable() ->copyMessage('username copied!')
                     ->copyMessageDuration(1500),
-                Tables\Columns\TextColumn::make('status'),
+               // Tables\Columns\TextColumn::make('status'),
+               TextColumn::make('status')
+                ->weight(FontWeight::Bold)
+                ->badge()
+    ->getStateUsing(function ($record) {
+        // Determine if expired dynamically
+        if (Carbon::parse($record->expiry_date)->isPast()) {
+            return 'expired';
+        }
+
+        return $record->status; // online or offline
+    })
+    ->color(function ($state) {
+        return match ($state) {
+            'online' => 'success',   // green
+            'offline' => 'danger',   // red
+            'expired' => 'warning',  // yellow
+            default => 'secondary',
+        };
+        
+    }),
                  Tables\Columns\IconColumn::make('enable')->boolean()->label('Enabled'),
                 Tables\Columns\TextColumn::make('sector.name')
     ->label('Sector'),
@@ -279,20 +320,34 @@ Tabs\Tab::make('Messages')
               
                  Tables\Columns\TextColumn::make('expiry_date')->dateTime(),
                   
-              //  Tables\Columns\TextColumn::make('expiry_date')->required(),
+    
+       
+             
             ])
               ->defaultSort('id', 'desc')
             ->filters([
                    Tables\Filters\TrashedFilter::make(),
-       Tables\Filters\SelectFilter::make('sector_id')
-        ->label('Sector')
-        ->relationship('sector', 'name'),
-        Tables\Filters\SelectFilter::make('group_id')
-        ->label('Group')
-        ->relationship('group', 'name'),
-        Tables\Filters\SelectFilter::make('service_id')
-        ->label('Service')
-        ->relationship('service', 'name'),
+
+Tables\Filters\SelectFilter::make('sector_id')
+    ->label('Sector')
+    ->relationship('sector', 'name', function ($query) {
+        $query->where('company_id',  Auth::user()->company_id);
+    }),
+
+       Tables\Filters\SelectFilter::make('group_id')
+    ->label('Group')
+    ->relationship('group', 'name', function ($query) {
+        $query->where('company_id',  Auth::user()->company_id);
+    }),
+
+    Tables\Filters\SelectFilter::make('service_id')
+    ->label('Service')
+    ->relationship('service', 'name', function ($query) {
+        $query->where('company_id',  Auth::user()->company_id);
+    }),
+
+      
+
          Tables\Filters\SelectFilter::make('status')
     ->label('Status')
     ->options([
@@ -300,8 +355,44 @@ Tabs\Tab::make('Messages')
         'online' => 'online',
         'expired' => 'expired',
     ]),
+
+      Tables\Filters\Filter::make('has_extensions')
+        ->label('Has Extensions')
+        ->query(fn (Builder $query): Builder => $query->has('extensions'))
+        ->toggle(),
+    
+   
+    Tables\Filters\Filter::make('no_extensions')
+        ->label('No Extensions')
+        ->query(fn (Builder $query): Builder => $query->doesntHave('extensions'))
+        ->toggle(),
+    
+          Tables\Filters\SelectFilter::make('extension_count')
+        ->label('Extension Usage')
+        ->options([
+            '1' => '1 Extension',
+            '2' => '2 Extensions',
+            '3' => '3 Extensions',
+            '4+' => '4+ Extensions',
+        ])
+        ->query(function (Builder $query, array $data) {
+            if (!isset($data['value'])) {
+                return $query;
+            }
+            
+            $value = $data['value'];
+            
+            if ($value === '4+') {
+                return $query->has('extensions', '>=', 4);
+            }
+            
+            return $query->has('extensions', '=', (int)$value);
+        }),
+    
+        
+
      Tables\Filters\SelectFilter::make('expiry_date')
-     ->label('Expiery')
+     ->label('Expiery ')
       ->form([
         
         DatePicker::make('from'),
@@ -320,6 +411,37 @@ Tabs\Tab::make('Messages')
                 
                   Tables\Actions\ForceDeleteAction::make(),
             Tables\Actions\RestoreAction::make(),
+            // Add this to your table actions in CustomerResource
+Tables\Actions\Action::make('extend_expiry')
+    ->label('Extend')
+    ->icon('heroicon-o-clock')
+    ->color('warning')
+    ->form([
+        Forms\Components\DatePicker::make('new_expiry_date')
+            ->label('New Expiry Date')
+            ->required()
+            ->minDate(now()),
+        Forms\Components\Textarea::make('reason')
+            ->label('Reason for Extension')
+            ->required()
+            ->maxLength(500),
+    ])
+    ->action(function (Customer $record, array $data) {
+        // Create extension record
+        $record->extensions()->create([
+            'old_expiry_date' => $record->expiry_date,
+            'new_expiry_date' => $data['new_expiry_date'],
+            'reason' => $data['reason'],
+        ]);
+        
+        // Update customer's expiry date
+        $record->update(['expiry_date' => $data['new_expiry_date']]);
+        
+        Notification::make()
+            ->title('Expiry date extended')
+            ->success()
+            ->send();
+    }),
               
             ])
             ->bulkActions([

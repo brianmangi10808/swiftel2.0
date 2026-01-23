@@ -12,18 +12,20 @@ class Device extends Model
      use HasFactory;
       protected $fillable = [
          'company_id',
-        'name',
-        'ip_address',
-        'username',
+        'shortname',
+        'nasname',
+        'api_username',
+        'secret',
         'api_port',
-        'password',
         'location',
+        'type',
         'status',
+        'server'
     ];
 
-       protected $hidden = [
-        'password', 
-    ];
+    //    protected $hidden = [
+    //     'password', 
+    // ];
 
     protected $casts = [
         'status' => 'string',

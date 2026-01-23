@@ -41,10 +41,10 @@ public function boot(): void
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            ->path('login')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#4FDF54'),
                 'success' => Color::Green,
                 'danger'  => Color::Red,
                    'dark' => '#006400'
@@ -55,6 +55,7 @@ public function boot(): void
             ->pages([
                 Pages\Dashboard::class,
             ])
+            
           //  ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
          

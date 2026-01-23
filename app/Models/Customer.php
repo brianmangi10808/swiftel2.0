@@ -197,6 +197,11 @@ public function company()
 }
 
 
+public function extensions()
+{
+    return $this->hasMany(Extension::class);
+}
+
 }
 
 

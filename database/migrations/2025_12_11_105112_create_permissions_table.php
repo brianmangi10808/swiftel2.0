@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-Schema::create('permissions', function (Blueprint $table) {
-    $table->id();
-    $table->string('model'); // e.g. 'Device', 'Customer'
-    $table->string('action'); // e.g. 'create', 'read', 'update', 'delete'
-    $table->timestamps();
-});
+// Schema::create('permissions', function (Blueprint $table) {
+//     $table->id();
+//     $table->string('model'); 
+//     $table->string('action'); 
+//     $table->timestamps();
+// });
 
     }
 

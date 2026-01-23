@@ -25,7 +25,7 @@ class ListCustomers extends ListRecords
     {
         $user = Auth::user();
 
-        // ✅ Base query: scoped per company for normal users, global for super admin
+        
         $baseQuery = Customer::query();
 
         if (! $user?->is_super_admin) {
@@ -35,9 +35,9 @@ class ListCustomers extends ListRecords
         return [
             'all' => Tab::make('All')
                 ->icon('heroicon-o-users')
-                // ✅ Use Filament's base query (already scoped by CustomerResource + this tab)
+                
                 ->modifyQueryUsing(fn (Builder $query) => $query)
-                // ✅ Badge: use company-scoped base query
+                
                 ->badge((clone $baseQuery)->count()),
 
             'online' => Tab::make('Online')
@@ -49,14 +49,20 @@ class ListCustomers extends ListRecords
                         ->count()
                 ),
 
-            'offline' => Tab::make('Offline')
-                ->icon('heroicon-o-signal-slash')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'offline'))
-                ->badge(
-                    (clone $baseQuery)
-                        ->where('status', 'offline')
-                        ->count()
-                ),
+    'offline' => Tab::make('Offline')
+    ->icon('heroicon-o-signal-slash')
+    ->modifyQueryUsing(fn (Builder $query) =>
+        $query->where('status', 'offline')
+              ->whereNotNull('expiry_date')
+              ->where('expiry_date', '>=', now())
+    )
+    ->badge(
+        (clone $baseQuery)
+            ->where('status', 'offline')
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '>=', now())
+            ->count()
+    ),
 
             'enabled' => Tab::make('Enabled')
                 ->icon('heroicon-o-check-circle')

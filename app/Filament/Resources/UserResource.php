@@ -18,7 +18,8 @@ use Illuminate\Support\Facades\Auth;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
-
+  //protected static ?string $navigationGroup = 'Network Devices';
+  
     protected static ?string $navigationIcon = 'heroicon-o-users';
     
 public static function getEloquentQuery(): Builder

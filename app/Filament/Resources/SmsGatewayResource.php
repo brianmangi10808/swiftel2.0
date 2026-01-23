@@ -34,12 +34,12 @@ class SmsGatewayResource extends Resource
     $query = parent::getEloquentQuery();
     $user = Auth::user();
 
-    // ✅ Super Admin → sees all tickets
+   
     if ($user?->is_super_admin) {
         return $query;
     }
 
-    // ✅ Company users → only their company tickets
+   
     return $query->where('company_id', $user->company_id);
 }
 public static function form(Form $form): Form
@@ -156,30 +156,7 @@ Forms\Components\Hidden::make('company_id')
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                 Tables\Actions\Action::make('test')
-                ->label('Test Connection')
-                ->icon('heroicon-o-check-circle')
-                ->color('success')
-                ->requiresConfirmation()
-                ->action(function ($record) {
-                    try {
-                        $balance = \App\Services\SmsGatewayTester::test($record);
-
-                        \Filament\Notifications\Notification::make()
-                            ->title('Gateway Test Successful')
-                            ->body("Balance: {$balance}")
-                            ->success()
-                            ->send();
-
-                    } catch (\Exception $e) {
-
-                        \Filament\Notifications\Notification::make()
-                            ->title('Test Failed')
-                            ->body($e->getMessage())
-                            ->danger()
-                            ->send();
-                    }
-                }),
+            
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
