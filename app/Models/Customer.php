@@ -53,6 +53,7 @@ class Customer extends Model
     ];
         protected $dates = ['deleted_at'];
 
+
         protected static function booted()
 {
     static::created(function ($model) {

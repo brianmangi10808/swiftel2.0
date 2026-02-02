@@ -230,7 +230,7 @@ public static function getEloquentQuery(): Builder
                     ->schema([
                         Forms\Components\Placeholder::make('radacct_table')
                             ->content(fn ($record) => view('filament.tables.radacct-table', [
-                                'radacct' => $record?->radacct ?? collect([])
+                              'radacct' => $record?->radacct()->orderBy('radacctid', 'desc')->limit(20)->get() ?? collect([])
                             ]))
                             ->columnSpanFull(),
                     ]),
@@ -251,7 +251,7 @@ Tabs\Tab::make('Messages')
     ->schema([
         Forms\Components\Placeholder::make('authlog_table')
             ->content(fn ($record) => view('filament.tables.authlog-table', [
-                'authlogs' => $record?->AuthLog()->whereNotNull('mac')->where('mac', '!=', '')->get() ?? collect([])
+                'authlogs' => $record?->AuthLog()->whereNotNull('mac')->where('mac', '!=', '')->orderBy('created_at', 'desc')->limit(20)->get() ?? collect([])
             ]))
             ->columnSpanFull(),
     ]),
@@ -268,6 +268,7 @@ Tabs\Tab::make('Messages')
                 ])
                 ->persistTabInQueryString()
                 ->columnSpanFull()
+              
         ]);
     }
 

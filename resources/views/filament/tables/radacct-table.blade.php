@@ -5,7 +5,7 @@
                 <thead class="bg-gray-50 dark:bg-gray-800">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            IP Address
+                            Public Address
                         </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Start Time
@@ -17,16 +17,16 @@
                             Duration
                         </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Input Octets
+                            Upload
                         </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Output Octets
+                           Download
                         </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Terminate Cause
                         </th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Framed IP Address
+                            Local Address
                         </th>
                     </tr>
                 </thead>
@@ -45,12 +45,34 @@
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 {{ $record->acctsessiontime ? gmdate("H:i:s", $record->acctsessiontime) : '-' }}
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                {{ $record->acctinputoctets ? number_format($record->acctinputoctets / 1024 / 1024, 2) . ' MB' : '-' }}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                {{ $record->acctoutputoctets ? number_format($record->acctoutputoctets / 1024 / 1024, 2) . ' MB' : '-' }}
-                            </td>
+                          <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+    @if($record->acctinputoctets)
+        @php
+            $mb = $record->acctinputoctets / 1024 / 1024;
+            if ($mb >= 1024) {
+                echo number_format($mb / 1024, 2) . ' GB';
+            } else {
+                echo number_format($mb, 2) . ' MB';
+            }
+        @endphp
+    @else
+        -
+    @endif
+</td>
+<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+    @if($record->acctoutputoctets)
+        @php
+            $mb = $record->acctoutputoctets / 1024 / 1024;
+            if ($mb >= 1024) {
+                echo number_format($mb / 1024, 2) . ' GB';
+            } else {
+                echo number_format($mb, 2) . ' MB';
+            }
+        @endphp
+    @else
+        -
+    @endif
+</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium 
                                     {{ $record->acctterminatecause == 'User-Request' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">

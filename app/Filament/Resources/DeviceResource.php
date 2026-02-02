@@ -47,20 +47,20 @@ public static function getEloquentQuery(): Builder
     ->default(fn () => Auth::user()?->company_id),
                  Forms\Components\TextInput::make('nasname')
                 ->required()
-                ->label('nasname')
-                ->placeholder('e.g., CCR2116 Main Router'),
+                ->label('ip address')
+                ->placeholder('e.g., 102.0.24.21'),
 
             Forms\Components\TextInput::make('api_username')
                 ->label('api username')
                 ->required()
-                ->placeholder('e.g., 192.168.88.1'),
+                ->placeholder('e.g., admin'),
 
             Forms\Components\TextInput::make('shortname')
                 ->label('shortname')
                 ->required(),
 
             Forms\Components\TextInput::make('secret')
-                ->label('secret')
+                ->label('secret/password')
                
                 ->required(),
 
@@ -82,13 +82,7 @@ public static function getEloquentQuery(): Builder
                 ->default(8728)
                 ->label('API Port'),    
 
-            Forms\Components\Select::make('status')
-                ->label('Status')
-                ->options([
-                    'online' => 'Online',
-                    'offline' => 'Offline',
-                ])
-                ->default('offline'),
+            
             ]);
     }
 
@@ -101,9 +95,9 @@ public static function getEloquentQuery(): Builder
     ->sortable()
     ->toggleable()
     ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
-                 Tables\Columns\TextColumn::make('nasname')->sortable()->searchable(),
+                 Tables\Columns\TextColumn::make('nasname')->sortable()->searchable()->label('ip_address'),
             Tables\Columns\TextColumn::make('api_username')->sortable(),
-            Tables\Columns\TextColumn::make('secret')->limit(30),
+            Tables\Columns\TextColumn::make('secret')->limit(30) ->label('secret/password'),
             Tables\Columns\TextColumn::make('status')
             ->badge()
                 ->colors([

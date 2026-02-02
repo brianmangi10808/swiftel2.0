@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CustomerResource\Pages;
 use App\Filament\Resources\CustomerResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use App\Jobs\NotifyMikrotikBackend;
 
 class EditCustomer extends EditRecord
 {
@@ -18,5 +19,11 @@ class EditCustomer extends EditRecord
        
         Actions\RestoreAction::make(),
         ];
+        
+    }
+   protected function afterSave(): void
+    {
+        // Dispatch job to notify backend with just the customer ID
+        NotifyMikrotikBackend::dispatch($this->record->id);
     }
 }

@@ -35,14 +35,14 @@ class RadacctResource extends Resource
     {
         return $table
             ->columns([
-                 Tables\Columns\TextColumn::make('nasipaddress')->label('ip address')->searchable()->sortable(),
+                 Tables\Columns\TextColumn::make('nasipaddress')->label('Public ip ')->searchable()->sortable(),
             Tables\Columns\TextColumn::make('acctstarttime')->label('START TIME')->searchable(),
             Tables\Columns\TextColumn::make('acctstoptime')->label('Stop Time')->searchable(),
             Tables\Columns\TextColumn::make('acctsessiontime')->label('Duration'),
-            Tables\Columns\TextColumn::make('acctinputoctets')->label('acctinputoctets'),
-            Tables\Columns\TextColumn::make('acctoutputoctets')->label('acctoutputoctets'),
-            Tables\Columns\TextColumn::make('acctterminatecause')->label('acctterminatecause')->sortable(),
-            Tables\Columns\TextColumn::make('framedipaddress')->label('framedipaddress'),
+            Tables\Columns\TextColumn::make('acctinputoctets')->label('upload'),
+            Tables\Columns\TextColumn::make('acctoutputoctets')->label('Download'),
+            Tables\Columns\TextColumn::make('acctterminatecause')->label('Drop cause')->sortable(),
+            Tables\Columns\TextColumn::make('framedipaddress')->label('local ip address'),
             ])
             ->filters([
                 //

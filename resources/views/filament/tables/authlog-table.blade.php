@@ -10,9 +10,7 @@
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             MAC
                         </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            NAS
-                        </th>
+                      
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Action
                         </th>
@@ -20,9 +18,7 @@
                             Status
                         </th>
                         
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Session ID
-                        </th>
+                        
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Reason
                         </th>
@@ -40,9 +36,7 @@
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-mono">
                                 {{ $log->mac ?? '-' }}
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                {{ $log->nas ?? '-' }}
-                            </td>
+                          
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
                                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium
                                     {{ $log->action == 'login' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 
@@ -60,9 +54,7 @@
                                 </span>
                             </td>
                            
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-mono text-xs">
-                                {{ $log->session_id ? Str::limit($log->session_id, 20) : '-' }}
-                            </td>
+                           
                             <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                                 {{ $log->reason ?? '-' }}
                             </td>

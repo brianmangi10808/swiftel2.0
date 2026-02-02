@@ -78,7 +78,7 @@ window.initTrafficChart = function(pppoeInterface, canvasId, companyId) {
         data: {
             datasets: [
                 {
-                    label: "↑ Upload",
+                    label: "↑ Download",
                     borderColor: "#ef4444",
                     backgroundColor: "rgba(239,68,68,0.15)",
                     data: [],
@@ -86,7 +86,7 @@ window.initTrafficChart = function(pppoeInterface, canvasId, companyId) {
                     tension: 0.4,
                 },
                 {
-                    label: "↓ Download",
+                    label: "↓ Upload",
                     borderColor: "#3b82f6",
                     backgroundColor: "rgba(59,130,246,0.15)",
                     data: [],
@@ -126,7 +126,7 @@ window.initTrafficChart = function(pppoeInterface, canvasId, companyId) {
     // ------------------------------
     async function fetchData() {
         try {
-            const resp = await fetch(`http://127.0.0.1:3000/api/live-traffic/${encodeURIComponent(pppoeInterface)}?company_id=${companyId}`);
+            const resp = await fetch(`https://paybox.swiftelfiber.co.ke/api/live-traffic/${encodeURIComponent(pppoeInterface)}?company_id=${companyId}`);
             const d = await resp.json();
 
             const now = performance.now() / 1000;
