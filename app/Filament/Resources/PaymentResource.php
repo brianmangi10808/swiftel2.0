@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class PaymentResource extends Resource
 {
@@ -21,7 +22,35 @@ class PaymentResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
     protected static ?string $navigationGroup = 'Finance';
     protected static ?string $navigationLabel = 'Payments';
+          public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read payments') ?? false;
+}
 
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read payments') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create payments') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update payments') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete payments') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete payments') ?? false;
+}
     public static function getEloquentQuery(): Builder
 {
     $query = parent::getEloquentQuery();
@@ -45,7 +74,7 @@ class PaymentResource extends Resource
          
             Forms\Components\TextInput::make('trans_amount')->numeric()->prefix('KSH')->disabled(),
             Forms\Components\TextInput::make('business_short_code')->maxLength(10)->disabled(),
-            Forms\Components\TextInput::make('bill_ref_number')->maxLength(20)->disabled(),
+            Forms\Components\TextInput::make('bill_ref_number')->maxLength(20),
         
             Forms\Components\TextInput::make('first_name')->maxLength(50)->disabled(),
       
@@ -60,6 +89,7 @@ class PaymentResource extends Resource
     ->sortable()
     ->toggleable()
     ->visible(fn () => Auth::user()?->is_super_admin),
+    Tables\Columns\TextColumn::make('business_short_code')->label('business_short_code')->searchable()->sortable()->disabled(),
             Tables\Columns\TextColumn::make('trans_id')->label('Transaction ID')->searchable()->sortable()->disabled(),
             Tables\Columns\TextColumn::make('first_name')->label('First Name')->searchable()->disabled(),
           
@@ -84,7 +114,7 @@ class PaymentResource extends Resource
     })
         ])
         ->actions([
-           // Tables\Actions\EditAction::make(),
+            Tables\Actions\EditAction::make(),
            //Tables\Actions\DeleteAction::make(),
         ])
         ->bulkActions([

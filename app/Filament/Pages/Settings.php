@@ -7,6 +7,9 @@ use Filament\Pages\Page;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use App\Models\SystemSetting;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class Settings extends Page
 {
@@ -19,6 +22,21 @@ class Settings extends Page
         return false;
     }
 
+    public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery()
+        ->withoutGlobalScopes([
+            SoftDeletingScope::class,
+        ]);
+
+    $user = Auth::user();   
+    if ($user->is_super_admin) {
+        return $query;
+    }
+    return $query->where('company_id', $user->company_id);
+}
+
+
     public ?array $data = [];
 
     public function mount(): void
@@ -29,7 +47,7 @@ class Settings extends Page
 
 
         'prune_after_expiry' =>
-            \App\Models\SystemSetting::get('prune_after_expiry', '30_days'),
+            \App\Models\SystemSetting::get('prune_after_expiry', '60_days'),
         ]);
     }
 

@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CustomerResource;
+use Illuminate\Database\Eloquent\Model;
+
 class TicketsResource extends Resource
 {
     protected static ?string $model = Tickets::class;
@@ -24,6 +26,35 @@ class TicketsResource extends Resource
      protected static ?int $navigationSort = 3;
       protected static ?string $navigationGroup = 'Customers';
     protected static ?string $modelLabel = 'Ticket';
+public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read tickets') ?? false;
+}
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read tickets') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create tickets') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update tickets') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete tickets') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete tickets') ?? false;
+}
 
 public static function getEloquentQuery(): Builder
 {
@@ -35,7 +66,7 @@ public static function getEloquentQuery(): Builder
         return $query;
     }
 
-    // ✅ Company users → only their company tickets
+    // ✅ Company Ticket → only their company tickets
     return $query->where('company_id', $user->company_id);
 }
     public static function form(Form $form): Form

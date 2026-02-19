@@ -12,7 +12,11 @@ use Illuminate\Support\Facades\Auth;
 class IspOverview extends BaseWidget
 {
 
-        
+        public static function canView(): bool
+    {
+        return Auth::user()->is_super_admin 
+            || Auth::user()->can('read customers');
+    }
 
         protected static ?string $pollingInterval = null;
 public function getViewData(): array
@@ -38,7 +42,7 @@ public function getViewData(): array
         }
 
        $total   = (clone $query)->count();
-        $online  = (clone $query)->where('status', 'online')->count();
+        $online  = (clone $query)->where('status', 'online') ->whereNotNull('expiry_date') ->where('expiry_date', '>=', now())->count();
         $offline = (clone $query) ->where('status', 'offline') ->whereNotNull('expiry_date') ->where('expiry_date', '>=', now()) ->count();
         $expired = (clone $query)->where('expiry_date', '<', now())->count();
 

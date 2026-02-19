@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
+use Illuminate\Database\Eloquent\Model;
 class GroupResource extends Resource
 {
     protected static ?string $model = Group::class;
@@ -22,6 +22,36 @@ class GroupResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
        protected static ?string $navigationGroup = 'Area';
            protected static ?int $navigationSort = 30;
+
+                  public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read groups') ?? false;
+}
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read groups') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create groups') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update groups') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete groups') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete groups') ?? false;
+}
 
 public static function getEloquentQuery(): Builder
 {
@@ -96,6 +126,7 @@ public static function getEloquentQuery(): Builder
             'index' => Pages\ListGroups::route('/'),
             'create' => Pages\CreateGroup::route('/create'),
             'edit' => Pages\EditGroup::route('/{record}/edit'),
+            'view' => Pages\ViewGroup::route('/{record}'),
         ];
     }
 }

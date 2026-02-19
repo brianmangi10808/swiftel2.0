@@ -8,11 +8,12 @@ use Filament\Forms;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
 use App\Filament\Resources\CustomerResource\RelationManagers;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Database\Eloquent\Model;
 use Filament\Tables;
-use Filament\Forms\Components\TextInput;
+
 use Filament\Forms\Components\RichEditor;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
@@ -32,7 +33,35 @@ class CustomerResource extends Resource
     protected static ?string $navigationLabel = 'Customers';
     protected static ?string $navigationGroup = 'Customers';
     protected static ?int $navigationSort = 1;
+    public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read customers') ?? false;
+}
 
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read customers') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create customers') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update customers') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete customers') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete customers') ?? false;
+}
 public static function getEloquentQuery(): Builder
 {
     $query = parent::getEloquentQuery()
@@ -407,6 +436,8 @@ Tables\Filters\SelectFilter::make('sector_id')
 
             ])
             ->actions([
+
+            
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 
@@ -446,9 +477,72 @@ Tables\Actions\Action::make('extend_expiry')
               
             ])
             ->bulkActions([
+
+            Tables\Actions\BulkAction::make('export')
+    ->label('Export Customers')
+    ->icon('heroicon-o-arrow-down-tray')
+    ->action(function ($records) {
+        return response()->streamDownload(function () use ($records) {
+            $handle = fopen('php://output', 'w');
+            
+            // Add CSV headers
+            fputcsv($handle, [
+                'username',
+                 'password',
+                'sector_id',
+                'service_id',
+                'group_id',
+                'premise_id',
+                'enable',
+                'firstname',
+                'lastname',
+                'mobile_number',
+                'Created At',
+                'expiry_date',
+            ]);
+
+            // Add data rows
+            foreach ($records as $record) {
+                fputcsv($handle, [
+                    $record->username,
+                    $record->password,
+                    $record->sector_id,
+                    $record->service_id,
+                    $record->group_id,
+                     $record->premise_id,
+                      $record->enable,
+                     $record->firstname,
+                    $record->lastname,
+                     $record->mobile_number,
+                    $record->created_at?->format('Y-m-d H:i:s'),
+                     $record->expiry_date?->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($handle);
+        }, 'customer_export_' . now()->format('Y-m-d_His') . '.csv');
+    }),
+
 Tables\Actions\BulkActionGroup::make(array_merge(
         [
             Tables\Actions\DeleteBulkAction::make(),
+           Tables\Actions\BulkAction::make('dropCredits')
+    ->label('Drop Credits')
+    ->icon('heroicon-o-currency-dollar')
+    ->requiresConfirmation()
+    ->form([
+        Forms\Components\TextInput::make('amount')
+            ->numeric()
+            ->required()
+            ->label('Credits to drop'),
+    ])
+    ->action(function ($records, array $data): void {
+        foreach ($records as $record) {
+            $record->credit = max(0, $record->credit - $data['amount']);
+            $record->save();
+        }
+    }),
+
         ],
         static::generateSmsActions()
     )),

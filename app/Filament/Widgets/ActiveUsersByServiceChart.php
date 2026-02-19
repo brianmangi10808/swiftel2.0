@@ -16,12 +16,16 @@ class ActiveUsersByServiceChart extends ChartWidget
     {
         return 'half';
     }
-
+ public static function canView(): bool
+    {
+        return Auth::user()->is_super_admin 
+            || Auth::user()->can('read customers');
+    }
     protected function getData(): array
     {
         $user = Auth::user();
 
-        // ✅ Company scoped services
+      
         $services = $user->is_super_admin
             ? Service::all()
             : Service::where('company_id', $user->company_id)->get();
@@ -36,7 +40,7 @@ class ActiveUsersByServiceChart extends ChartWidget
                         $query = Customer::where('service_id', $service->id)
                             ->where('expiry_date', '>=', now());
 
-                        // ✅ Lock customers to company unless super admin
+                        
                         if (! $user->is_super_admin) {
                             $query->where('company_id', $user->company_id);
                         }

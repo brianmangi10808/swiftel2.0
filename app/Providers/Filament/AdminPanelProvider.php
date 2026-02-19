@@ -41,8 +41,13 @@ public function boot(): void
         return $panel
             ->default()
             ->id('admin')
-            ->path('login')
-            ->login()
+            ->path('admin')
+            ->login(\App\Filament\Pages\Auth\Login::class)
+            ->passwordReset(
+    requestAction: \App\Filament\Pages\Auth\RequestPasswordReset::class,
+    resetAction: \App\Filament\Pages\Auth\ResetPassword::class,
+)
+            ->emailVerification() 
             ->colors([
                 'primary' => Color::hex('#4FDF54'),
                 'success' => Color::Green,
@@ -52,9 +57,12 @@ public function boot(): void
             ->maxContentWidth('full')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            // ->pages([
+            //     Pages\Dashboard::class,
+            // ])
             ->pages([
-                Pages\Dashboard::class,
-            ])
+    \App\Filament\Pages\Dashboard::class,  // Use your custom Dashboard
+])
             
           //  ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

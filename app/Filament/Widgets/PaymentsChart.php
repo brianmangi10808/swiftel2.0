@@ -12,7 +12,11 @@ class PaymentsChart extends ChartWidget
     protected static ?string $heading = 'Payments';
     protected static ?string $description = 'Payments and expenses trend.';
     public ?string $filter = 'this_year';
-
+ public static function canView(): bool
+    {
+        return Auth::user()->is_super_admin 
+            || Auth::user()->can('read payments');
+    }
     protected function getFilters(): ?array
     {
         return [
@@ -38,7 +42,9 @@ $payments = Payment::query()
     ->get()
     ->map(function ($p) {
         // Convert 20250102153035 → Carbon
-        $p->date = Carbon::createFromFormat('YmdHis', $p->trans_time);
+    //    $p->date = Carbon::createFromFormat('YmdHis', $p->trans_time);
+    $p->date = Carbon::parse($p->trans_time);
+
         return $p;
     });
 

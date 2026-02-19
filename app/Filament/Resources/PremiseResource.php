@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\BadgeColumn;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,35 @@ class PremiseResource extends Resource
    protected static ?string $navigationGroup = 'Area';
     protected static ?string $navigationIcon = 'heroicon-o-home';
         protected static ?int $navigationSort = 32;
+                  public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read premises') ?? false;
+}
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read premises') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create premises') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update premises') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete premises') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete premises') ?? false;
+}
 
 public static function getEloquentQuery(): Builder
 {

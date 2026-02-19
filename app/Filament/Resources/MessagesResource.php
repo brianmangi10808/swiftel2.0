@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Model;
 
 class MessagesResource extends Resource
 {
@@ -22,6 +23,36 @@ class MessagesResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
      protected static ?string $navigationGroup = 'Communication';
          protected static ?int $navigationSort = 22;
+
+                           public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read messages') ?? false;
+}
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read messages') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create messages') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update messages') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete messages') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete messages') ?? false;
+}
 
 public static function getEloquentQuery(): Builder
 {

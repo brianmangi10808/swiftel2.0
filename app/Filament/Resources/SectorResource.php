@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Model;
 
 class SectorResource extends Resource
 {
@@ -21,6 +22,36 @@ class SectorResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
       protected static ?string $navigationGroup = 'Area';
           protected static ?int $navigationSort = 31;
+
+               public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read sectors') ?? false;
+}
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read sectors') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create sectors') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update sectors') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete sectors') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete sectors') ?? false;
+}
 public static function getEloquentQuery(): Builder
 {
     $query = parent::getEloquentQuery();

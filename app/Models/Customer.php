@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 
-
+use Illuminate\Notifications\Notifiable;
 use App\Models\SmsTemplate;
 use App\Services\SmsGatewayService;
 use Carbon\Carbon;

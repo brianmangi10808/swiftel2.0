@@ -10,7 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use App\Models\Permission;
-
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
@@ -35,11 +35,36 @@ public static function getEloquentQuery(): Builder
     return $query->where('company_id', $user->company_id);
 }
 
-public function canAccessPanel(\Filament\Panel $panel): bool
-{
-    return true; // Access is controlled by Filament resources & policies instead
-}
 
+  public static function canViewAny(): bool
+    {
+        return Auth::user()?->can('read users') ?? false;
+    }
+
+    public static function canView(Model $record): bool
+    {
+        return Auth::user()?->can('read users') ?? false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return Auth::user()?->can('create users') ?? false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return Auth::user()?->can('update users') ?? false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return Auth::user()?->can('delete users') ?? false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return Auth::user()?->can('delete users') ?? false;
+    }
 
     public static function form(Form $form): Form
     {
@@ -54,15 +79,7 @@ public function canAccessPanel(\Filament\Panel $panel): bool
     ->multiple()
     ->preload()
     ->required(),
-Forms\Components\Select::make('permissions')
-    ->multiple()
-    ->relationship('permissions', 'action')
-    ->options(
-        Permission::all()->mapWithKeys(fn ($p) => [
-            $p->id => "{$p->model} - {$p->action}"
-        ])
-    )
-    ->preload(),
+
 
 
                         Forms\Components\TextInput::make('name')
@@ -78,10 +95,7 @@ Forms\Components\Select::make('permissions')
                             ->placeholder('user@example.com'),
 
                         Forms\Components\TextInput::make('password')
-                            ->password()
                             ->required(fn (string $operation): bool => $operation === 'create')
-                            ->dehydrateStateUsing(fn ($state) => !empty($state) ? bcrypt($state) : null)
-                            ->dehydrated(fn ($state) => filled($state))
                             ->placeholder('Enter password')
                             ->helperText(fn (string $operation): string => 
                                 $operation === 'edit' ? 'Leave blank to keep current password' : ''

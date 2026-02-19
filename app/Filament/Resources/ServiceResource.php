@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ServiceResource extends Resource
@@ -24,6 +25,36 @@ class ServiceResource extends Resource
     protected static ?string $navigationLabel = 'Services';
         protected static ?int $navigationSort = 40;
     protected static ?string $pluralModelLabel = 'Services';
+     public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read services') ?? false;
+}
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read services') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create services') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update services') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete services') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete services') ?? false;
+}
+
 public static function getEloquentQuery(): Builder
 {
     $query = parent::getEloquentQuery();

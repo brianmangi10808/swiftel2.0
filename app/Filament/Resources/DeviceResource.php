@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -25,17 +26,47 @@ class DeviceResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-server';
     protected static ?string $navigationGroup = 'Network Devices';
     protected static ?string $navigationLabel = 'MikroTik Devices';
+
+    public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read devices') ?? false;
+}
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read devices') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create devices') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update devices') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete devices') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete devices') ?? false;
+}
 public static function getEloquentQuery(): Builder
 {
     $query = parent::getEloquentQuery();
     $user = Auth::user();
 
-    // Super Admin → sees all tickets
+    // Super Admin → sees all devices
     if ($user?->is_super_admin) {
         return $query;
     }
 
-    // Company users → only their company tickets
+    // Company users → only their company devices
     return $query->where('company_id', $user->company_id);
 }
 

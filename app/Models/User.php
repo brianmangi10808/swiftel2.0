@@ -2,116 +2,126 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use App\Notifications\ResetPasswordNotification;
 
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-use HasRoles;
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    use HasFactory, Notifiable, HasRoles, Notifiable;
+
     protected $fillable = [
         'name',
         'email',
         'password',
-          'company_id',
-    'is_super_admin',
+        'company_id',
+        'is_super_admin',
+        'email_verified_at',
+        'otp',
+        'otp_expires_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
+        'otp',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'otp_expires_at' => 'datetime',
             'password' => 'hashed',
-           'is_super_admin' => 'boolean',
-
+            'is_super_admin' => 'boolean',
         ];
     }
-       public function company()
+ public function sendPasswordResetNotification($token): void
     {
-        return $this->belongsTo(\App\Models\Company::class);
+        $this->notify(new ResetPasswordNotification($token));
+    }
+    /**
+     * Determine if user can access Filament panel
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Super admins always have access
+        if ($this->is_super_admin) {
+            return true;
+        }
+
+        // Regular users need verified email AND at least one role
+        return $this->hasVerifiedEmail() && $this->roles()->exists();
     }
 
-public function permissions()
-{
-    return $this->belongsToMany(Permission::class, 'user_permissions');
-}
+    /**
+     * Check if user can perform an action on a model
+     */
+    public function canDo(string $action, string $model): bool
+    {
+        if ($this->is_super_admin) {
+            return true;
+        }
 
-public function canDo(string $model, string $action): bool
-{
-    // Super Admin bypass
-    if ($this->is_super_admin || $this->role === 'super_admin') {
-        return true;
+        // Check using Spatie's permission system
+        $permissionName = "{$action} {$model}";
+        return $this->hasPermissionTo($permissionName);
     }
 
-    return $this->permissions()
-        ->where('model', $model)
-        ->where('action', $action)
-        ->exists();
-}
+    /**
+     * Relationships
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 
-
-       public function tickets()
+    public function tickets()
     {
         return $this->hasMany(Tickets::class);
     }
 
-          protected static function booted()
-{
-    static::created(function ($model) {
-        log_activity(
-            'created',
-            'Created new users',
-            get_class($model),
-            $model->id,   // users ID
-            $model->toArray()
-        );
-    });
+    /**
+     * Activity logging
+     */
+    protected static function booted()
+    {
+        static::created(function ($model) {
+            log_activity(
+                'created',
+                'Created new user',
+                get_class($model),
+                $model->id,
+                $model->toArray()
+            );
+        });
 
-    static::updated(function ($model) {
-        log_activity(
-            'updated',
-            'Updated users',
-            get_class($model),
-            $model->id,   // users ID
-            [
-                'old' => $model->getOriginal(),
-                'new' => $model->getChanges(),
-            ]
-        );
-    });
+        static::updated(function ($model) {
+            log_activity(
+                'updated',
+                'Updated user',
+                get_class($model),
+                $model->id,
+                [
+                    'old' => $model->getOriginal(),
+                    'new' => $model->getChanges(),
+                ]
+            );
+        });
 
-    static::deleted(function ($model) {
-        log_activity(
-            'deleted',
-            'Deleted users',
-            get_class($model),
-            $model->id    // users ID
-        );
-    });
-}
+        static::deleted(function ($model) {
+            log_activity(
+                'deleted',
+                'Deleted user',
+                get_class($model),
+                $model->id
+            );
+        });
+    }
 }

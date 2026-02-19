@@ -11,7 +11,11 @@ class NewCustomersChart extends ChartWidget
     protected static ?string $heading = 'New Customers';
     protected static ?string $description = 'New customer registrations trend.';
     public ?string $filter = 'this_year';
-
+public static function canView(): bool
+    {
+        return Auth::user()->is_super_admin 
+            || Auth::user()->can('read customers');
+    }
     protected function getFilters(): ?array
     {
         return [

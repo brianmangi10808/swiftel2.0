@@ -13,7 +13,11 @@ class CustomerLineStats extends ChartWidget
 {
     protected static ?string $heading = 'Customer Trends';
     protected static ?int $sort = 2;
-
+ public static function canView(): bool
+    {
+        return Auth::user()->is_super_admin 
+            || Auth::user()->can('read payments');
+    }
 protected function getData(): array
 {
      $user = Auth::user();

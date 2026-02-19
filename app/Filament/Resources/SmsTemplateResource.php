@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class SmsTemplateResource extends Resource
 {
@@ -18,7 +19,35 @@ class SmsTemplateResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
     protected static ?string $navigationLabel = 'SMS Templates';
       protected static ?int $navigationSort = 20;
+                  public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read sms_templates') ?? false;
+}
 
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read sms_templates') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create sms_templates') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update sms_templates') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete sms_templates') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete sms_templates') ?? false;
+}
     protected static ?string $navigationGroup = 'Communication';
 
 public static function getEloquentQuery(): Builder

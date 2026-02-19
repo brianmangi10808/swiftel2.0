@@ -16,7 +16,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -29,10 +29,40 @@ class LeadsResource extends Resource
      protected static ?string $navigationGroup = 'Customers';
       protected static ?int $navigationSort = 2;
 
-public static function canAccess(): bool
+       public static function canViewAny(): bool
 {
-    return \Illuminate\Support\Facades\Auth::check();
+    return Auth::user()?->can('read leads ') ?? false;
 }
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read leads ') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create leads') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update leads') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete leads') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete leads') ?? false;
+}
+
+// public static function canAccess(): bool
+// {
+//     return \Illuminate\Support\Facades\Auth::check();
+// }
 
 public static function getEloquentQuery(): Builder
 {

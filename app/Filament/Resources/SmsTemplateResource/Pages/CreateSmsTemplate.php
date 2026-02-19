@@ -9,4 +9,8 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateSmsTemplate extends CreateRecord
 {
     protected static string $resource = SmsTemplateResource::class;
+     protected function getRedirectUrl(): string { 
+     return 
+      $this->getResource()::getUrl('index'); 
+     }
 }

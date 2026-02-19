@@ -14,6 +14,7 @@ use Filament\Tables\Filters\Filter;
 use App\Filament\Resources\ActivityLogResource\Pages;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Model;
 
 
 class ActivityLogResource extends Resource
@@ -25,6 +26,35 @@ class ActivityLogResource extends Resource
     protected static ?string $navigationLabel = 'Activity Logs';
     protected static ?int $navigationSort = 50;
 
+               public static function canViewAny(): bool
+{
+    return Auth::user()?->can('read activity_logs') ?? false;
+}
+
+public static function canView(Model $record): bool
+{
+    return Auth::user()?->can('read activity_logs') ?? false;
+}
+
+public static function canCreate(): bool
+{
+    return Auth::user()?->can('create activity_logs') ?? false;
+}
+
+public static function canEdit(Model $record): bool
+{
+    return Auth::user()?->can('update activity_logs') ?? false;
+}
+
+public static function canDelete(Model $record): bool
+{
+    return Auth::user()?->can('delete activity_logs') ?? false;
+}
+
+public static function canDeleteAny(): bool
+{
+    return Auth::user()?->can('delete activity_logs') ?? false;
+}
     public static function getEloquentQuery(): Builder
 {
     $query = parent::getEloquentQuery()
