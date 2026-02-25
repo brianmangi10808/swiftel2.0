@@ -153,7 +153,7 @@ Forms\Components\Textarea::make('resolution_notes')
                 ->badge()
                 ->color(fn (string $state): string => match ($state) {
                     'online' => 'success',
-                    'offline' => 'primary',
+                    'offline' => 'danger',
                     default => 'gray',
                 })
                 ->sortable(),

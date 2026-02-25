@@ -95,11 +95,9 @@ public static function getEloquentQuery(): Builder
                             ->placeholder('user@example.com'),
 
                         Forms\Components\TextInput::make('password')
-                            ->required(fn (string $operation): bool => $operation === 'create')
-                            ->placeholder('Enter password')
-                            ->helperText(fn (string $operation): string => 
-                                $operation === 'edit' ? 'Leave blank to keep current password' : ''
-                            ),
+                            ->required()
+                            ->placeholder('Enter password'),
+                            
 
                        
                     ])

@@ -13,12 +13,9 @@ use App\Filament\Resources\CustomerResource\RelationManagers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables;
-
-use Filament\Forms\Components\RichEditor;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Validation\Rules\Unique;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Support\Enums\FontWeight;
 use Carbon\Carbon;
@@ -313,8 +310,26 @@ Tabs\Tab::make('Messages')
     ->visible(fn () => Auth::user()?->is_super_admin),
 
                   Tables\Columns\TextColumn::make('firstname')->sortable()->searchable() ->copyMessage('first copied!')
-                    ->copyMessageDuration(1500),
-                Tables\Columns\TextColumn::make('lastname')->sortable()->searchable() ->copyMessage('last name copied!')
+                                      ->copyMessageDuration(1500),
+                Tables\Columns\TextColumn::make('is_new')
+    ->label('')
+     
+     ->badge()
+     
+    ->getStateUsing(fn ($record) => $record->created_at->isAfter(now()->subMonth()) 
+        ? 'New' 
+        : ''
+    )
+    ->color(fn ($record) => $record->created_at->isAfter(now()->subMonth()) 
+        ? 'success' 
+        : null
+    )
+    ->tooltip(fn ($record) => $record->created_at->isAfter(now()->subMonth()) 
+        ? 'New Customer (less than 1 month old)' 
+        : null
+    ),
+
+                                      Tables\Columns\TextColumn::make('lastname')->sortable()->searchable() ->copyMessage('last name copied!')
                     ->copyMessageDuration(1500),
                 Tables\Columns\TextColumn::make('username')->searchable() ->copyMessage('username copied!')
                     ->copyMessageDuration(1500),
@@ -378,13 +393,27 @@ Tables\Filters\SelectFilter::make('sector_id')
 
       
 
-         Tables\Filters\SelectFilter::make('status')
+          Tables\Filters\SelectFilter::make('status')
     ->label('Status')
     ->options([
         'offline' => 'offline',
         'online' => 'online',
         'expired' => 'expired',
-    ]),
+    ])
+    ->query(function (Builder $query, array $data) {
+        $value = $data['value'] ?? null;
+
+        if ($value === 'expired') {
+            return $query->where('expiry_date', '<', now());
+        }
+
+        if ($value) {
+            return $query->where('status', $value);
+        }
+
+        return $query;
+    }),
+
 
       Tables\Filters\Filter::make('has_extensions')
         ->label('Has Extensions')

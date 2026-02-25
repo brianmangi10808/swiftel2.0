@@ -102,6 +102,7 @@ public static function getEloquentQuery(): Builder
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -110,12 +111,13 @@ public static function getEloquentQuery(): Builder
             ]);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
+  public static function getRelations(): array
+{
+    return [
+        RelationManagers\CustomersRelationManager::class,
+    ];
+}
+
 
     public static function getPages(): array
     {
@@ -123,6 +125,7 @@ public static function getEloquentQuery(): Builder
             'index' => Pages\ListSectors::route('/'),
             'create' => Pages\CreateSector::route('/create'),
             'edit' => Pages\EditSector::route('/{record}/edit'),
+            'view' => Pages\ViewSector::route('/{record}'),
         ];
     }
 }

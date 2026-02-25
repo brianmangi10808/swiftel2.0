@@ -40,7 +40,7 @@ class ListCustomers extends ListRecords
                 
                 ->badge((clone $baseQuery)->count()),
 
-                    'online' => Tab::make('Online')
+                      'online' => Tab::make('Online')
     ->icon('heroicon-o-signal')
     ->modifyQueryUsing(fn (Builder $query) =>
         $query->where('status', 'online')
@@ -54,7 +54,6 @@ class ListCustomers extends ListRecords
             ->where('expiry_date', '>=', now())
             ->count()
     ),
-
 
     'offline' => Tab::make('Offline')
     ->icon('heroicon-o-signal-slash')
