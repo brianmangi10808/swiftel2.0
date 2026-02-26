@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Payment extends Model
 {
     use HasFactory;
-
+  protected $connection = 'radius';
     protected $fillable = [
          'company_id',
         'transaction_type',
