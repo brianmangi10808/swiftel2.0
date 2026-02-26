@@ -89,12 +89,19 @@ public static function canDeleteAny(): bool
     ->sortable()
     ->toggleable()
     ->visible(fn () => Auth::user()?->is_super_admin),
-    Tables\Columns\TextColumn::make('business_short_code')->label('business_short_code')->searchable()->sortable()->disabled(),
+    Tables\Columns\TextColumn::make('business_short_code')->label('business_short_code')->searchable()->sortable()->disabled()
+        ->color('success'),
             Tables\Columns\TextColumn::make('trans_id')->label('Transaction ID')->searchable()->sortable()->disabled(),
-            Tables\Columns\TextColumn::make('first_name')->label('First Name')->searchable()->disabled(),
+          
           
             Tables\Columns\TextColumn::make('trans_amount')->label('Amount')->money('KES', true)->sortable()->toggleable()->disabled()->searchable(),
             Tables\Columns\TextColumn::make('bill_ref_number')->label('Bill Ref')->searchable(),
+            Tables\Columns\TextColumn::make('customer.first_name')
+    ->label('First Name')->searchable(),
+
+Tables\Columns\TextColumn::make('customer.last_name')
+    ->label('Last Name')->searchable(),
+
          
             Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Created'),
         ])
