@@ -127,8 +127,8 @@ public static function getEloquentQuery(): Builder
     ->toggleable()
     ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
                  Tables\Columns\TextColumn::make('nasname')->sortable()->searchable()->label('ip_address'),
-            Tables\Columns\TextColumn::make('api_username')->sortable(),
-            Tables\Columns\TextColumn::make('secret')->limit(30) ->label('secret/password'),
+            Tables\Columns\TextColumn::make('shortname')->sortable(),
+            Tables\Columns\TextColumn::make('location')->limit(30) ->label('AREA CODE'),
             Tables\Columns\TextColumn::make('status')
             ->badge()
                 ->colors([

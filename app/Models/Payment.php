@@ -66,4 +66,9 @@ public function company()
 {
     return $this->belongsTo(\App\Models\Company::class);
 }
+public function customer()
+{
+    return $this->belongsTo(\App\Models\Customer::class, 'bill_ref_number', 'username');
+}
+
 }
