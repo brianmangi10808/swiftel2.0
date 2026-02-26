@@ -97,7 +97,7 @@ public static function canDeleteAny(): bool
           
           
             Tables\Columns\TextColumn::make('trans_amount')->label('Amount')->money('KES', true)->sortable()->toggleable()->disabled()->searchable(),
-            Tables\Columns\TextColumn::make('bill_ref_number')->label('Bill Ref')->searchable(),
+            Tables\Columns\TextColumn::make('bill_ref_number')->label('Bill Ref') ->copyMessage('number copied!')->searchable(),
 Tables\Columns\TextColumn::make('customer.firstname')
     ->label('First Name')
     ->searchable()

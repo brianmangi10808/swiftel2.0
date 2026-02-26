@@ -361,7 +361,7 @@ Tabs\Tab::make('Messages')
                  ->label('Service'),
                   Tables\columns\TextColumn::make('group.name')
                  ->label('Group'),
-                Tables\Columns\TextColumn::make('credit')->label('Credit Balance'),
+                Tables\Columns\TextColumn::make('credit')->label('Credit Balance')->sortable(),
               
                  Tables\Columns\TextColumn::make('expiry_date')->dateTime(),
                   
