@@ -53,7 +53,8 @@ public static function canDeleteAny(): bool
 }
     public static function getEloquentQuery(): Builder
 {
-    $query = parent::getEloquentQuery();
+    
+    $query = parent::getEloquentQuery()->with('customer');
     $user = Auth::user();
 
     // ✅ Super Admin → sees all tickets
