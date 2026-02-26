@@ -58,7 +58,7 @@ public static function canDeleteAny(): bool
     public static function getEloquentQuery(): Builder
 {
     $query = parent::getEloquentQuery()
-        ->where('action', '!=', 'viewed'); // Exclude "viewed" actions globally
+        ->where('action', '!=', 'viewed' ); // Exclude "viewed" actions globally
 
     $user = Auth::user();
 
@@ -90,7 +90,7 @@ public static function canDeleteAny(): bool
                 TextColumn::make('action')
                     ->badge()
                     ->color(fn ($state) => match ($state) {
-                        'created' => 'success',
+                     'created' => 'success',
                         'updated' => 'warning',
                         'deleted' => 'danger',
                         //'action'  => 'primary',
@@ -109,16 +109,13 @@ public static function canDeleteAny(): bool
     ->sortable()
     ->searchable(),
 
-    TextColumn::make('model_name')
-    ->label('Record')
-    ->sortable()
-    ->searchable(),
+    // TextColumn::make('model_name')
+    // ->label('Record')
+    // ->sortable()
+    // ->searchable(),
 
 
 
-                TextColumn::make('url')
-                    ->label('URL Visited')
-                    ->limit(50),
 Tables\Columns\ViewColumn::make('data')
     ->label('Changes')
     ->view('filament.tables.activity-log-changes'),

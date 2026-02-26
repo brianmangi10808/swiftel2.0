@@ -358,7 +358,8 @@ Tabs\Tab::make('Messages')
                 Tables\Columns\TextColumn::make('sector.name')
     ->label('Sector'),
                  Tables\columns\TextColumn::make('service.name')
-                 ->label('Service'),
+                 ->label('Service')  ->color('success') 
+       ->weight(FontWeight::Bold),
                   Tables\columns\TextColumn::make('group.name')
                  ->label('Group'),
                 Tables\Columns\TextColumn::make('credit')->label('Credit Balance')->sortable(),
@@ -467,8 +468,8 @@ Tables\Filters\SelectFilter::make('sector_id')
             ->actions([
 
             
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()->label(''),
+                Tables\Actions\EditAction::make()->label(''),
                 
                   Tables\Actions\ForceDeleteAction::make(),
             Tables\Actions\RestoreAction::make(),
