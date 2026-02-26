@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Support\Enums\FontWeight;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
@@ -91,7 +92,7 @@ public static function canDeleteAny(): bool
     ->toggleable()
     ->visible(fn () => Auth::user()?->is_super_admin),
     Tables\Columns\TextColumn::make('business_short_code')->label('business_short_code')->searchable()->sortable()->disabled()
-        ->color('success'),
+        ->color('success') ->weight(FontWeight::Bold) ,
             Tables\Columns\TextColumn::make('trans_id')->label('Transaction ID')->searchable()->sortable()->disabled(),
           
           
@@ -99,11 +100,15 @@ public static function canDeleteAny(): bool
             Tables\Columns\TextColumn::make('bill_ref_number')->label('Bill Ref')->searchable(),
 Tables\Columns\TextColumn::make('customer.firstname')
     ->label('First Name')
-    ->searchable(),
+    ->searchable()
+      ->color('success') 
+       ->weight(FontWeight::Bold),
 
 Tables\Columns\TextColumn::make('customer.lastname')
     ->label('Last Name')
-    ->searchable(),
+    ->searchable()
+      ->color('success')
+       ->weight(FontWeight::Bold) ,
 
          
             Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Created'),
