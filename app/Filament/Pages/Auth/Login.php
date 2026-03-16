@@ -7,6 +7,7 @@ use App\Notifications\SendOtpNotification;
 use Filament\Pages\Auth\Login as BaseLogin;
 use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Hash;
 
 class Login extends BaseLogin
 {
@@ -16,29 +17,38 @@ class Login extends BaseLogin
 
         $user = User::where('email', $data['email'])->first();
 
-        if (!$user || !\Illuminate\Support\Facades\Hash::check($data['password'], $user->password)) {
+        if (!$user || !Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'data.email' => __('These credentials do not match our records.'),
             ]);
         }
 
-        // Generate OTP
-        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        // Generate device fingerprint
+        $deviceFingerprint = md5(request()->userAgent() . request()->ip());
 
+        // Check if device was verified within last 30 days
+        $isDeviceVerified = $user->device_fingerprint === $deviceFingerprint 
+            && $user->device_verified_at 
+            && $user->device_verified_at->isAfter(now()->subDays(30));
+
+        if ($isDeviceVerified) {
+            // Device is trusted - login directly without OTP
+            auth()->login($user, $data['remember'] ?? false);
+            session()->regenerate();
+
+            return app(LoginResponse::class);
+        }
+
+        // First time on this device - verify and remember for 30 days
         $user->update([
-            'otp' => $otp,
-            'otp_expires_at' => now()->addMinutes(10),
+            'device_verified_at' => now(),
+            'device_fingerprint' => $deviceFingerprint,
         ]);
 
-        // Send OTP
-        $user->notify(new SendOtpNotification($otp));
+        // Login without OTP
+        auth()->login($user, $data['remember'] ?? false);
+        session()->regenerate();
 
-        // Store email in session for OTP verification
-        session(['otp_email' => $user->email]);
-
-        // Redirect to OTP verification
-        redirect()->to(route('auth.otp.verify'));
-
-        return null;
+        return app(LoginResponse::class);
     }
 }

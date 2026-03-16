@@ -25,6 +25,8 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'email_verified_at',
         'otp',
         'otp_expires_at',
+        'device_verified_at',
+        'device_fingerprint'
     ];
 
     protected $hidden = [
@@ -38,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'otp_expires_at' => 'datetime',
+            'device_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
         ];
