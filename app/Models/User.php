@@ -14,6 +14,7 @@ use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
+
     use HasFactory, Notifiable, HasRoles, Notifiable;
 
     protected $fillable = [

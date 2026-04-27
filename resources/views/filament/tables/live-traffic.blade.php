@@ -126,7 +126,7 @@ window.initTrafficChart = function(pppoeInterface, canvasId, companyId) {
     // ------------------------------
     async function fetchData() {
         try {
-            const resp = await fetch(`https://paybox.swiftelfiber.co.ke/api/live-traffic/${encodeURIComponent(pppoeInterface)}?company_id=${companyId}`);
+            const resp = await fetch(`https://paybox.swiftel.africa/api/live-traffic/${encodeURIComponent(pppoeInterface)}?company_id=${companyId}`);
             const d = await resp.json();
 
             const now = performance.now() / 1000;

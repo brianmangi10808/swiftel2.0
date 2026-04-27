@@ -10,6 +10,8 @@ class Device extends Model
 {
 
      use HasFactory;
+  protected $connection = 'radius';
+
       protected $fillable = [
          'company_id',
         'shortname',

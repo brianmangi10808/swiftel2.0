@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Extension extends Model
 {
+protected $connection = 'radius';
+
     protected $fillable = [
         'customer_id',
         'old_expiry_date',

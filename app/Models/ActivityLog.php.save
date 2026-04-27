@@ -30,10 +30,6 @@ protected $connection = 'radius';
   //  {
     //    return $this->belongsTo(User::class);
     //}
-public function user()
-{
-    return $this->belongsTo(BackupUser::class, 'user_id');
-}
 
     public function company()
 {

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SmsGateway extends Model
 {
+   protected $connection = 'radius';
+
     protected $table = 'sms_gateways';
 
     protected $fillable = [

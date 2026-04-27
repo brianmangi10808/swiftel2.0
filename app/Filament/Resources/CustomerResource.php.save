@@ -22,8 +22,6 @@ use Carbon\Carbon;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Forms\Components\Tabs;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Database\Eloquent\Collection;
 
 class CustomerResource extends Resource
 {
@@ -322,7 +320,6 @@ Tabs\Tab::make('Activity Logs')
     public static function table(Table $table): Table
     {
         return $table
-           ->paginated([10, 25, 50])
             ->columns([
                //  Tables\Columns\TextColumn::make('id')->searchable(),
                  Tables\Columns\TextColumn::make('company.name')
@@ -388,10 +385,7 @@ Tabs\Tab::make('Activity Logs')
                 Tables\Columns\TextColumn::make('credit')->label('Credit Balance')->sortable(),
               
                  Tables\Columns\TextColumn::make('expiry_date')->dateTime(),
-                  Tables\Columns\TextColumn::make('Calling_Station_Id')
-    ->label('Mac Address')
-    ->searchable(),
-
+                  
     
        
              
@@ -399,19 +393,9 @@ Tabs\Tab::make('Activity Logs')
               ->defaultSort('id', 'desc')
             ->filters([
                    Tables\Filters\TrashedFilter::make(),
-Tables\Filters\Filter::make('active_no_payment')
-    ->label('Active Without Payment ')
-    ->toggle()
-    ->query(function (Builder $query): Builder {
-        return $query
-            ->where('expiry_date', '>', now())
-            ->whereNotExists(function ($subQuery) {
-                $subQuery->select('id')
-                    ->from('payments')
-                    ->whereColumn('payments.bill_ref_number', 'customers.username')
-                    ->where('payments.created_at', '>=', now()->subDays(32));
-            });
-    }),
+
+
+CustomerResource.php
 Tables\Filters\SelectFilter::make('sector_id')
     ->label('Sector')
     ->relationship('sector', 'name', function ($query) {
@@ -594,167 +578,6 @@ Tables\Actions\Action::make('extend_expiry')
 Tables\Actions\BulkActionGroup::make(array_merge(
         [
             Tables\Actions\DeleteBulkAction::make(),
-      Tables\Actions\BulkAction::make('send_sms')
-    ->label('Send SMS')
-    ->icon('heroicon-o-chat-bubble-left-ellipsis')
-    ->color('info')
-    ->form([
-        Forms\Components\Placeholder::make('available_placeholders')
-            ->label('Available Placeholders')
-            ->content(
-                new \Illuminate\Support\HtmlString('
-                    <div class="text-sm text-gray-500 flex flex-wrap gap-2">
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{firstname}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{lastname}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{username}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{mobile_number}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{credit}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{expiry_date}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{status}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{email}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{service}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{group}</span>
-                        <span class="bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 font-mono">{sector}</span>
-                    </div>
-                    <p class="mt-2 text-xs text-gray-400">Click a placeholder to copy, then paste it into your message.</p>
-                ')
-            ),
-
-        Forms\Components\Textarea::make('message')
-            ->label('Message')
-            ->required()
-            ->rows(4)
-            ->maxLength(320)
-            ->helperText('Use placeholders above to personalize each message. E.g: Dear {firstname}, your account expires on {expiry_date}.')
-            ->live()
-            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                // optionally count characters live
-            }),
-
-        Forms\Components\Placeholder::make('char_count')
-            ->label('Character Count')
-            ->live()
-            ->content(function (Forms\Get $get) {
-                $msg = $get('message') ?? '';
-                $len = strlen($msg);
-                $parts = $len > 0 ? ceil($len / 160) : 0;
-                $color = $len > 320 ? 'text-red-500' : ($len > 160 ? 'text-yellow-500' : 'text-green-600');
-                return new \Illuminate\Support\HtmlString(
-                    "<span class='text-sm font-medium {$color}'>{$len} characters / {$parts} SMS part(s)</span>"
-                );
-            }),
-    ])
-   ->action(function (Collection $records, array $data) {
-
-    $gateway = \App\Models\SmsProvider::where('active', true)->first();
-
-    if (!$gateway) {
-        Notification::make()
-            ->title('No active SMS Provider found')
-            ->body('Please configure and activate an SMS provider in settings.')
-            ->danger()
-            ->send();
-        return;
-    }
-
-    // Define the resolver as a local closure — no self:: needed
-    $resolvePlaceholders = function (string $message, $customer): string {
-        return str_replace(
-            [
-                '{firstname}',
-                '{lastname}',
-                '{username}',
-                '{mobile_number}',
-                '{credit}',
-                '{expiry_date}',
-                '{status}',
-                '{email}',
-                '{service}',
-                '{group}',
-                '{sector}',
-            ],
-            [
-                $customer->firstname      ?? '',
-                $customer->lastname       ?? '',
-                $customer->username       ?? '',
-                $customer->mobile_number  ?? '',
-                $customer->credit         ?? '',
-                $customer->expiry_date
-                    ? \Carbon\Carbon::parse($customer->expiry_date)->format('d M Y')
-                    : '',
-                $customer->status         ?? '',
-                $customer->email          ?? '',
-                $customer->service?->name ?? '',
-                $customer->group?->name   ?? '',
-                $customer->sector?->name  ?? '',
-            ],
-            $message
-        );
-    };
-
-    $sent    = 0;
-    $failed  = 0;
-    $skipped = 0;
-
-    foreach ($records as $customer) {
-
-        if (empty($customer->mobile_number)) {
-            $skipped++;
-            continue;
-        }
-
-        $personalizedMessage = $resolvePlaceholders($data['message'], $customer);
-
-        try {
-            $response = Http::timeout(15)->post($gateway->api_url, [
-                'api_key'   => $gateway->api_key,
-                'sender_id' => $gateway->sender_id,
-                'phone'     => $customer->mobile_number,
-                'message'   => $personalizedMessage,
-            ]);
-
-            if ($response->successful()) {
-                $sent++;
-            } else {
-                $failed++;
-                \Log::warning("SMS failed for customer [{$customer->id}]: " . $response->body());
-            }
-
-        } catch (\Exception $e) {
-            $failed++;
-            \Log::error("SMS exception for customer [{$customer->id}]: " . $e->getMessage());
-        }
-
-       \App\Models\Messages::create([
-            'company_id'   => $customer->company_id,  // ← from customer record
-            'recipient'    => $customer->mobile_number,
-            'message_body' => $personalizedMessage,
-            'channel'      => 'sms',
-            'status'       => 'sent',
-            'scheduled_at' => now(),
-        ]);
-    } // end foreach
-
-    Notification::make()
-        ->title('Bulk SMS Complete')
-        ->body(implode(' | ', array_filter([
-            $sent    ? " Sent: {$sent}"                    : null,
-            $failed  ? " Failed: {$failed}"                : null,
-            $skipped ? " Skipped (no number): {$skipped}" : null,
-        ])))
-        ->when($failed === 0 && $skipped === 0, fn ($n) => $n->success())
-        ->when($failed > 0 && $sent > 0,        fn ($n) => $n->warning())
-        ->when($sent === 0,                     fn ($n) => $n->danger())
-        ->persistent()
-        ->send();
-
-}) // end ->action()
-    ->deselectRecordsAfterCompletion()
-    ->requiresConfirmation()
-    ->modalHeading('Send Bulk SMS')
-    ->modalDescription('Compose a personalized message using placeholders. Each customer will receive their own version.')
-    ->modalSubmitActionLabel('Send SMS'),
-
            Tables\Actions\BulkAction::make('dropCredits')
     ->label('Drop Credits')
     ->icon('heroicon-o-currency-dollar')
@@ -773,7 +596,7 @@ Tables\Actions\BulkActionGroup::make(array_merge(
     }),
 
         ],
-        
+        static::generateSmsActions()
     )),
 
      
@@ -782,7 +605,64 @@ Tables\Actions\BulkActionGroup::make(array_merge(
                 Tables\Actions\RestoreBulkAction::make(),
             ]);
     }
- 
+ public static function generateSmsActions(): array
+{
+    $actions = [];
+    $user = Auth::user();
+
+    $templates = \App\Models\SmsTemplate::where('active', true)
+        ->when(! $user->is_super_admin, function ($query) use ($user) {
+            $query->where('company_id', $user->company_id);
+        })
+        ->get();
+
+    foreach ($templates as $template) {
+
+        $label = "Send " . ucfirst(str_replace('_', ' ', $template->type)) . " SMS";
+
+        $actions[] = Tables\Actions\BulkAction::make("send_{$template->type}_sms")
+            ->label($label)
+            ->icon('heroicon-o-chat-bubble-left-right')
+            ->color('success')
+            ->requiresConfirmation()
+            ->action(function ($records) use ($template) {
+
+                $success = 0;
+                $failed = 0;
+
+                foreach ($records as $customer) {
+                    // ✅ Hard safety check
+                    if ($customer->company_id !== $template->company_id) {
+                        $failed++;
+                        continue;
+                    }
+
+                    $sent = $customer->sendSmsFromTemplate($template->type);
+                    $sent ? $success++ : $failed++;
+                }
+
+                if ($success > 0) {
+                    \Filament\Notifications\Notification::make()
+                        ->title("SMS Sent")
+                        ->body("{$success} messages sent using '{$template->type}' template.")
+                        ->success()
+                        ->send();
+                }
+
+                if ($failed > 0) {
+                    \Filament\Notifications\Notification::make()
+                        ->title("Sending Failed")
+                        ->body("{$failed} failed. Cross-company block or gateway failure.")
+                        ->danger()
+                        ->send();
+                }
+            });
+    }
+
+    return $actions;
+}
+
+    
 
 public static function getRelations(): array
 {

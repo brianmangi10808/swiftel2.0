@@ -82,10 +82,19 @@ public static function canDeleteAny(): bool
     ->toggleable()
     ->visible(fn () => \Illuminate\Support\Facades\Auth::user()?->is_super_admin),
 
-                TextColumn::make('user.name')
-                    ->label('User')
-                    ->searchable()
-                    ->sortable(),
+//                TextColumn::make('user.name')
+  //                  ->label('User')
+    //                ->searchable()
+      //              ->sortable(),
+// ActivityLogResource.php - replace the user column
+
+TextColumn::make('user_id')
+    ->label('User')
+    ->getStateUsing(fn ($record) => 
+        \App\Models\BackupUser::find($record->user_id)?->name ?? 'System'
+    )
+    ->searchable(false)
+    ->sortable(false),
 
                 TextColumn::make('action')
                     ->badge()

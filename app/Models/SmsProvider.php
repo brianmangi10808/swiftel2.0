@@ -5,6 +5,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SmsProvider extends Model
 {
+  protected $connection = 'radius';
+
     protected $fillable = [
         'provider_name',
         'api_url',

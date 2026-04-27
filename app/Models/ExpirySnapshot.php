@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExpirySnapshot extends Model
 {
+protected $connection = 'radius';
+
      protected $fillable = [
             'company_id',
         'snapshot_date',

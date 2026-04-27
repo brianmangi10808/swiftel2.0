@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Leads extends Model
 {
+protected $connection = 'radius';
     
     protected $fillable = [
         'firstname',

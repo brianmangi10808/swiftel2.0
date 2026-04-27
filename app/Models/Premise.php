@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Premise extends Model
 {
     use HasFactory;
+protected $connection = 'radius';
 
     protected $fillable = [
           'company_id',

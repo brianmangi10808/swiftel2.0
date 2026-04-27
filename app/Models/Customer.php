@@ -19,6 +19,7 @@ class Customer extends Model
 {
      use SoftDeletes;
  use HasFactory;
+protected $connection = 'radius';
 
    
     protected $fillable = [
@@ -53,7 +54,30 @@ class Customer extends Model
     ];
         protected $dates = ['deleted_at'];
 
+private static function resolvePlaceholders(string $message, Customer $customer): string
+{
+    $replacements = [
+        '{firstname}'     => $customer->firstname     ?? '',
+        '{lastname}'      => $customer->lastname      ?? '',
+        '{username}'      => $customer->username      ?? '',
+        '{mobile_number}' => $customer->mobile_number ?? '',
+        '{credit}'        => $customer->credit        ?? '',
+        '{expiry_date}'   => $customer->expiry_date
+                                ? \Carbon\Carbon::parse($customer->expiry_date)->format('d M Y')
+                                : '',
+        '{status}'        => $customer->status        ?? '',
+        '{email}'         => $customer->email         ?? '',
+        '{service}'       => $customer->service?->name  ?? '',
+        '{group}'         => $customer->group?->name    ?? '',
+        '{sector}'        => $customer->sector?->name   ?? '',
+    ];
 
+    return str_replace(
+        array_keys($replacements),
+        array_values($replacements),
+        $message
+    );
+}
         protected static function booted()
 {
     static::created(function ($model) {
