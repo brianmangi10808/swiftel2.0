@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Filament\Resources\PaymentGateways;
+
+use App\Filament\Resources\PaymentGateways\Pages\CreatePaymentGateway;
+use App\Filament\Resources\PaymentGateways\Pages\EditPaymentGateway;
+use App\Filament\Resources\PaymentGateways\Pages\ListPaymentGateways;
+use App\Filament\Resources\PaymentGateways\Pages\ViewPaymentGateway;
+use App\Filament\Resources\PaymentGateways\Schemas\PaymentGatewayForm;
+use App\Filament\Resources\PaymentGateways\Schemas\PaymentGatewayInfolist;
+use App\Filament\Resources\PaymentGateways\Tables\PaymentGatewaysTable;
+use App\Filament\Resources\PaymentGateways\RelationManagers\PaymentsRelationManager;
+use App\Models\PaymentGateway;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+
+class PaymentGatewayResource extends Resource
+{
+    protected static ?string $model = PaymentGateway::class;
+
+   protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-credit-card';
+    
+protected static \UnitEnum|string|null $navigationGroup = 'Settings';
+    
+
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function form(Schema $schema): Schema
+    {
+        return PaymentGatewayForm::configure($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return PaymentGatewayInfolist::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return PaymentGatewaysTable::configure($table);
+    }
+
+  
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListPaymentGateways::route('/'),
+            'create' => CreatePaymentGateway::route('/create'),
+            'view' => ViewPaymentGateway::route('/{record}'),
+            'edit' => EditPaymentGateway::route('/{record}/edit'),
+        ];
+    }
+}

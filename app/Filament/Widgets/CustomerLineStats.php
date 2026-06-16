@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerLineStats extends ChartWidget
 {
-    protected static ?string $heading = 'Customer Trends';
+    protected ?string $heading = 'Customer Trends';
     protected static ?int $sort = 2;
  public static function canView(): bool
     {

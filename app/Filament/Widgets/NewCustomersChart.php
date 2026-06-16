@@ -8,8 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 class NewCustomersChart extends ChartWidget
 {
-    protected static ?string $heading = 'New Customers';
-    protected static ?string $description = 'New customer registrations trend.';
+    protected ?string $heading = 'New Customers';
+    protected ?string $description = 'New customer registrations trend.';
     public ?string $filter = 'this_year';
 public static function canView(): bool
     {

@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ActiveUsersByServiceChart extends ChartWidget
 {
-    protected static ?string $heading = 'Active Users by Service';
-    protected static ?string $description = 'Distribution of active customers across services.';
+    protected ?string $heading = 'Active Users by Service';
+    protected ?string $description = 'Distribution of active customers across services.';
 
     public function getColumnSpan(): int|string|array
     {

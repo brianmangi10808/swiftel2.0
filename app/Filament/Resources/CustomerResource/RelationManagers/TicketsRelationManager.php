@@ -6,6 +6,8 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
+use Filament\Actions;
+use Filament\Schemas\Schema; 
 use Filament\Tables\Table;
 use Filament\Notifications\Notification;
 
@@ -13,9 +15,11 @@ class TicketsRelationManager extends RelationManager
 {
     protected static string $relationship = 'tickets';
 
-    public function form(Form $form): Form
-    {
-        return $form
+
+public function form(Schema $schema): Schema
+
+{
+    return $schema
             ->schema([
                 Forms\Components\TextInput::make('ticket_number')
                     ->label('Ticket Number')
@@ -23,7 +27,7 @@ class TicketsRelationManager extends RelationManager
                     ->disabled()
                     ->dehydrated(),
 
-                Forms\Components\Grid::make(2)
+                \Filament\Schemas\Components\Grid::make(2)
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->label('Status')
@@ -99,7 +103,7 @@ class TicketsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()
+                Actions\CreateAction::make()
                     ->label('Raise Ticket')
                     ->icon('heroicon-o-plus')
                     ->slideOver()
@@ -110,15 +114,15 @@ class TicketsRelationManager extends RelationManager
                         return $data;
                     }),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make()
+            ->recordActions([
+                Actions\EditAction::make()
                     ->slideOver()
                     ->modalWidth('2xl'),
-                Tables\Actions\DeleteAction::make(),
+                Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

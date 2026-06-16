@@ -14,6 +14,7 @@ use Filament\Tables\Filters\Filter;
 use App\Filament\Resources\ActivityLogResource\Pages;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Filament\Schemas\Schema; 
 use Illuminate\Database\Eloquent\Model;
 
 
@@ -21,8 +22,8 @@ class ActivityLogResource extends Resource
 {
     protected static ?string $model = ActivityLog::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'System Logs';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+   protected static \UnitEnum|string|null $navigationGroup = 'Something';
     protected static ?string $navigationLabel = 'Activity Logs';
     protected static ?int $navigationSort = 50;
 

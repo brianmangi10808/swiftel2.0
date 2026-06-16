@@ -9,19 +9,21 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Schemas\Schema; 
 
 class ServiceResource extends Resource
 {
     protected static ?string $model = Service::class;
 
   
- protected static ?string $navigationIcon = 'heroicon-o-wifi';
-    protected static ?string $navigationGroup = 'ISP Management';
+ protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-wifi';
+    protected static \UnitEnum|string|null $navigationGroup = 'ISP Management';
     protected static ?string $navigationLabel = 'Services';
         protected static ?int $navigationSort = 40;
     protected static ?string $pluralModelLabel = 'Services';
@@ -69,9 +71,9 @@ public static function getEloquentQuery(): Builder
     return $query->where('company_id', $user->company_id);
 }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
                                 Forms\Components\Hidden::make('company_id')
     ->default(fn () => Auth::user()?->company_id),
@@ -131,12 +133,12 @@ public static function getEloquentQuery(): Builder
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                Actions\EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

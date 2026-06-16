@@ -13,6 +13,7 @@ use App\Filament\Resources\CustomerResource\RelationManagers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables;
+use Filament\Actions;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Illuminate\Validation\Rules\Unique;
@@ -21,17 +22,19 @@ use Filament\Support\Enums\FontWeight;
 use Carbon\Carbon;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
-use Filament\Forms\Components\Tabs;
+use Filament\Schemas\Components\Tabs;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Collection;
+use Filament\Schemas\Schema; 
 
 class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
-    protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $navigationLabel = 'Customers';
-    protected static ?string $navigationGroup = 'Customers';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-user-group';
+    protected static \UnitEnum|string|null $navigationGroup = 'Customers';
+   
     protected static ?int $navigationSort = 1;
+
     public static function canViewAny(): bool
 {
     return Auth::user()?->can('read customers') ?? false;
@@ -77,9 +80,11 @@ public static function getEloquentQuery(): Builder
 
 
 
-    public static function form(Form $form): Form
-    {
-        return $form->schema([
+public static function form(Schema $schema): Schema
+{
+    return $schema
+        
+        ->schema([
             Tabs::make('CustomerTabs')
                 ->tabs([
                     
@@ -503,16 +508,16 @@ Tables\Filters\SelectFilter::make('sector_id')
     })
 
             ])
-            ->actions([
+            ->recordActions([
 
             
-                Tables\Actions\ViewAction::make()->label(''),
-                Tables\Actions\EditAction::make()->label(''),
+                Actions\ViewAction::make()->label(''),
+                Actions\EditAction::make()->label(''),
                 
-                  Tables\Actions\ForceDeleteAction::make(),
-            Tables\Actions\RestoreAction::make(),
+                  Actions\ForceDeleteAction::make(),
+            Actions\RestoreAction::make(),
             // Add this to your table actions in CustomerResource
-Tables\Actions\Action::make('extend_expiry')
+Actions\Action::make('extend_expiry')
     ->label('Extend')
     ->icon('heroicon-o-clock')
     ->color('warning')
@@ -544,9 +549,9 @@ Tables\Actions\Action::make('extend_expiry')
     }),
               
             ])
-            ->bulkActions([
+            ->toolbarActions([
 
-            Tables\Actions\BulkAction::make('export')
+            Actions\BulkAction::make('export')
     ->label('Export Customers')
     ->icon('heroicon-o-arrow-down-tray')
     ->action(function ($records) {
@@ -591,10 +596,10 @@ Tables\Actions\Action::make('extend_expiry')
         }, 'customer_export_' . now()->format('Y-m-d_His') . '.csv');
     }),
 
-Tables\Actions\BulkActionGroup::make(array_merge(
+Actions\BulkActionGroup::make(array_merge(
         [
-            Tables\Actions\DeleteBulkAction::make(),
-      Tables\Actions\BulkAction::make('send_sms')
+            Actions\DeleteBulkAction::make(),
+      Actions\BulkAction::make('send_sms')
     ->label('Send SMS')
     ->icon('heroicon-o-chat-bubble-left-ellipsis')
     ->color('info')
@@ -755,7 +760,7 @@ Tables\Actions\BulkActionGroup::make(array_merge(
     ->modalDescription('Compose a personalized message using placeholders. Each customer will receive their own version.')
     ->modalSubmitActionLabel('Send SMS'),
 
-           Tables\Actions\BulkAction::make('dropCredits')
+           Actions\BulkAction::make('dropCredits')
     ->label('Drop Credits')
     ->icon('heroicon-o-currency-dollar')
     ->requiresConfirmation()
@@ -779,7 +784,7 @@ Tables\Actions\BulkActionGroup::make(array_merge(
      
 
    
-                Tables\Actions\RestoreBulkAction::make(),
+                Actions\RestoreBulkAction::make(),
             ]);
     }
  

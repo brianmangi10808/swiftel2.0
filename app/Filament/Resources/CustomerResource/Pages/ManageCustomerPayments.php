@@ -14,7 +14,7 @@ class ManageCustomerPayments extends ManageRelatedRecords
     // ✅ Must stay typed *and initialized* to avoid both PHP 8.3 and Filament errors
     protected static string $relationship = 'payments';
 
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationLabel = 'Payments';
 
     public function table(Table $table): Table

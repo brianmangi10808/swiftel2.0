@@ -31,7 +31,7 @@ class Radacct extends Model
 
     // Add any necessary relationships here
     protected $fillable = [
-      
+          'username', 
         'nasipaddress',
         'acctstarttime',
         'acctupdatetime',

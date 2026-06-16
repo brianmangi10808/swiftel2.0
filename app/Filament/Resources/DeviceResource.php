@@ -9,6 +9,8 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
+use Filament\Schemas\Schema; 
 use Illuminate\Database\Eloquent\Model;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,8 +25,8 @@ class DeviceResource extends Resource
 {
     protected static ?string $model = Device::class;
       protected static ?int $navigationSort = 41;
-    protected static ?string $navigationIcon = 'heroicon-o-server';
-    protected static ?string $navigationGroup = 'Network Devices';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-server';
+    protected static \UnitEnum|string|null $navigationGroup = 'Network Devices';
     protected static ?string $navigationLabel = 'MikroTik Devices';
 
     public static function canViewAny(): bool
@@ -70,9 +72,9 @@ public static function getEloquentQuery(): Builder
     return $query->where('company_id', $user->company_id);
 }
 
-    public static function form(Form $form): Form
-    {
-        return $form
+  public static function form(Schema $schema): Schema
+{
+    return $schema
             ->schema([
                                 Forms\Components\Hidden::make('company_id')
     ->default(fn () => Auth::user()?->company_id),
@@ -142,13 +144,13 @@ public static function getEloquentQuery(): Builder
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                Actions\EditAction::make(),
                 
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

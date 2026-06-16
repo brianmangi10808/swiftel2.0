@@ -44,9 +44,9 @@ class ViewCustomer extends ViewRecord
                     ->modalHeading('Raise Ticket for ' . $this->record->firstname . ' ' . $this->record->lastname)
                     ->form([
                         // Display customer info (read-only)
-                        Forms\Components\Section::make('Customer Information')
+                        \Filament\Schemas\Components\Section::make('Customer Information')
                             ->schema([
-                                Forms\Components\Grid::make(2)
+                                \Filament\Schemas\Components\Grid::make(2)
                                     ->schema([
                                         Forms\Components\Placeholder::make('customer_name')
                                             ->label('Customer Name')
@@ -71,7 +71,7 @@ class ViewCustomer extends ViewRecord
                             ->collapsible(),
 
                         // Ticket fields to fill
-                        Forms\Components\Section::make('Ticket Details')
+                        \Filament\Schemas\Components\Section::make('Ticket Details')
                             ->schema([
                                 Forms\Components\TextInput::make('ticket_number')
                                     ->label('Ticket Number')
@@ -79,7 +79,7 @@ class ViewCustomer extends ViewRecord
                                     ->disabled()
                                     ->dehydrated(),
 
-                                Forms\Components\Grid::make(2)
+                                \Filament\Schemas\Components\Grid::make(2)
                                     ->schema([
                                         Forms\Components\Select::make('status')
                                             ->label('Status')
@@ -137,7 +137,7 @@ class ViewCustomer extends ViewRecord
                             ->success()
                             ->title('Ticket Created Successfully')
                             ->body('Ticket #' . $ticket->id . ' has been created for ' . $this->record->firstname . ' ' . $this->record->lastname)
-                            ->actions([
+                            ->recordActions([
                                 \Filament\Notifications\Actions\Action::make('view')
                                     ->label('View Ticket')
                                     ->button()

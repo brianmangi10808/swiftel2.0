@@ -4,8 +4,8 @@ namespace App\Filament\Pages\Auth;
 
 use App\Models\User;
 use App\Notifications\SendOtpNotification;
-use Filament\Pages\Auth\Login as BaseLogin;
-use Filament\Http\Responses\Auth\Contracts\LoginResponse;
+use Filament\Auth\Pages\Login as BaseLogin;
+use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
 

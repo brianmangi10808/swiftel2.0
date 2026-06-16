@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
 use App\Models\Customer;
 use Illuminate\Support\Collection;
 use Filament\Forms\Components\Select;
@@ -20,13 +21,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Filament\Schemas\Schema; 
 
 class LeadsResource extends Resource
 {
     protected static ?string $model = Leads::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-     protected static ?string $navigationGroup = 'Customers';
+    protected static \BackedEnum|string|null $navigationIcon= 'heroicon-o-rectangle-stack';
+     protected static \UnitEnum|string|null $navigationGroup = 'Customers';
       protected static ?int $navigationSort = 2;
 
        public static function canViewAny(): bool
@@ -77,9 +79,9 @@ public static function getEloquentQuery(): Builder
 }
 
 
-    public static function form(Form $form): Form
-    {
-        return $form
+ public static function form(Schema $schema): Schema
+{
+    return $schema
             ->schema([
                  Forms\Components\Hidden::make('company_id')
     ->default(fn () => Auth::user()?->company_id),
@@ -126,10 +128,10 @@ public static function getEloquentQuery(): Builder
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make()
+            ->recordActions([
+                Actions\ActionGroup::make([
+                    Actions\EditAction::make(),
+                    Actions\DeleteAction::make()
                         ->label('Delete Ticket')
                         ->icon('heroicon-o-trash')
                         ->color('danger'),
@@ -138,7 +140,7 @@ public static function getEloquentQuery(): Builder
                     ->icon('heroicon-o-ellipsis-vertical')
                     ->button(),
 
-                Tables\Actions\Action::make('convert_to_customer')
+                Actions\Action::make('convert_to_customer')
                     ->label('Convert to Customer')
                     ->icon('heroicon-o-user-plus')
                     ->color('success')
@@ -282,12 +284,12 @@ public static function getEloquentQuery(): Builder
                             ->send();
                     })
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                     
                     // SMS Bulk Action with Form
-                    Tables\Actions\BulkAction::make('send_sms')
+                    Actions\BulkAction::make('send_sms')
                         ->label('Send SMS')
                         ->icon('heroicon-o-chat-bubble-bottom-center-text')
                         ->form([
@@ -316,7 +318,7 @@ public static function getEloquentQuery(): Builder
                     
                     // CSV Export Bulk Action
                 // CSV Export Bulk Action
-Tables\Actions\BulkAction::make('export')
+Actions\BulkAction::make('export')
     ->label('Export Leads')
     ->icon('heroicon-o-arrow-down-tray')
     ->action(function ($records) {
