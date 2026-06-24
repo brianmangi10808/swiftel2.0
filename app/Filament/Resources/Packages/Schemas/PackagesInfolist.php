@@ -29,10 +29,23 @@ class PackagesInfolist
                             ->label('Package Name')
                             ->weight('bold'),
 
-                        TextEntry::make('duration_sec')
-                            ->label('Duration')
-                            ->formatStateUsing(fn (int $state): string => round($state / 3600, 1) . ' hours')
-                            ->icon('heroicon-o-clock'),
+                       TextEntry::make('duration_sec')
+    ->label('Duration')
+    ->formatStateUsing(function (int $state): string {
+        if ($state < 3600) {
+            $min = round($state / 60);
+            return $min . ' min';
+        }
+
+        if ($state < 86400) {
+            $hrs = $state / 3600;
+            return rtrim(rtrim(number_format($hrs, 1), '0'), '.') . ' ' . ($hrs == 1 ? 'hour' : 'hrs');
+        }
+
+        $days = $state / 86400;
+        return rtrim(rtrim(number_format($days, 1), '0'), '.') . ' ' . ($days == 1 ? 'day' : 'days');
+    })
+    ->icon('heroicon-o-clock'),
 
                         TextEntry::make('price')
                             ->money('KES')

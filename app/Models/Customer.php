@@ -193,12 +193,12 @@ public function sendCustomSms(string $message): bool
         return $this->belongsTo(\App\Models\Premise::class, 'premise_id');
     }
 
-    public function payments()
+    public function payment()
     {
         return $this->hasMany(\App\Models\Payment::class, 'bill_ref_number', 'username');
     }
 
-      public function radacct()
+      public function sessions()
     {
         return $this->hasMany(\App\Models\Radacct::class, 'username', 'username');
     }

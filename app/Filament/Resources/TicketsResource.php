@@ -26,7 +26,8 @@ class TicketsResource extends Resource
     protected static ?string $navigationLabel = 'Tickets';
     protected static ?string $pluralLabel = 'Tickets';
      protected static ?int $navigationSort = 3;
-      protected static \UnitEnum|string|null $navigationGroup = 'Customers';
+      protected static \UnitEnum|string|null $navigationGroup = 'PPPOE Customers';
+
     protected static ?string $modelLabel = 'Ticket';
 public static function canViewAny(): bool
 {
@@ -140,16 +141,14 @@ Forms\Components\Textarea::make('resolution_notes')
     ->toggleable()
     ->visible(fn () => Auth::user()?->is_super_admin),
 
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable(),
+            
 
             Tables\Columns\TextColumn::make('customer.full_name')
     ->label('Customer')
     ->getStateUsing(fn ($record) => $record->customer?->firstname . ' ' . $record->customer?->lastname)
     ->weight(FontWeight::Bold)
-    ->color('dark')
-    ->url(fn ($record) => $record->customer ? CustomerResource::getUrl('view', ['record' => $record->customer->id]) : null),
+    ->color('dark'),
+    // ->url(fn ($record) => $record->customer ? CustomerResource::getUrl('view', ['record' => $record->customer->id]) : null),
   Tables\Columns\TextColumn::make('customer.status')
                 ->label('Customer Status')
                 ->badge()
@@ -184,13 +183,11 @@ Forms\Components\Textarea::make('resolution_notes')
 
                 Tables\Columns\TextColumn::make('severity')
                     ->label('Severity')
-                    ->color(fn (string $state): string => match ($state) {
-                    'Low' => 'success',
-                     'Medium' => 'primary',
-                    'High' => 'danger',
-                    
-                    default => 'gray',
-                })
+                                   ->colors([
+        'danger' => fn ($state) => strtolower($state) === 'High',
+        'warning' => fn ($state) => strtolower($state) === 'medium',
+        'Warning' => fn ($state) => strtolower($state) === 'low',
+    ])
                     ->badge(),
 
                 Tables\Columns\TextColumn::make('created_at')

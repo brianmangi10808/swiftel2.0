@@ -40,12 +40,39 @@ class PackagesForm
                     ->placeholder('e.g. "2 Hours Package"')
                     ->columnSpanFull(),
 
-                TextInput::make('duration_sec')
-                    ->label('Duration')
-                    ->required()
-                    ->numeric()
-                    ->suffix('seconds')
-                    ->placeholder('e.g. 7200'),
+                Select::make('duration_sec')
+    ->label('Duration')
+    ->required()
+    ->native(false)
+    ->searchable()
+    ->options([
+        180     => '3 min',
+        900     => '15 min',
+        1800    => '30 min',
+        2700    => '45 min',
+        3600    => '1 hour',
+        5400    => '1 h 30 min',
+        7200    => '2 hrs',
+        9000    => '2 hrs 30 min',
+        10800   => '3 hrs',
+        12600   => '3 hrs 30 min',
+        14400   => '4 hrs',
+        25200   => '7 hrs',
+        32400   => '9 hrs',
+        43200   => '12 hrs',
+        64800   => '18 hrs',
+        72000   => '20 hrs',
+        172800  => '2 days',
+        259200  => '3 days',
+        345600  => '4 days',
+        604800  => '7 days',
+        864000  => '10 days',
+        1209600 => '14 days',
+        2592000 => '30 days',
+        5184000 => '60 days',
+    ]),
+                
+                
 
                 TextInput::make('price')
                     ->required()

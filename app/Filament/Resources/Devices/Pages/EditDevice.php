@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Filament\Resources\DeviceResource\Pages;
+namespace App\Filament\Resources\Devices\Pages;
 
-use App\Filament\Resources\DeviceResource;
-use Filament\Actions;
+use App\Filament\Resources\Devices\DeviceResource;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Actions\ViewAction;
 
 class EditDevice extends EditRecord
 {
@@ -13,7 +14,8 @@ class EditDevice extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            ViewAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

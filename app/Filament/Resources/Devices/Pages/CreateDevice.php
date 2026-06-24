@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\DeviceResource\Pages;
+namespace App\Filament\Resources\Devices\Pages;
 
-use App\Filament\Resources\DeviceResource;
-use Filament\Actions;
+use App\Filament\Resources\Devices\DeviceResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateDevice extends CreateRecord

@@ -16,6 +16,7 @@ use Filament\Forms\Components\DatePicker;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Columns\TextColumn;
 
 class PaymentResource extends Resource
 {
@@ -114,7 +115,8 @@ Tables\Columns\TextColumn::make('customer.lastname')
       ->color('success')
        ->weight(FontWeight::Bold) ,
 
-         
+       
+       
             Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Created'),
         ])
         ->defaultSort('created_at', 'desc')

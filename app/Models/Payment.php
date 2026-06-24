@@ -12,6 +12,7 @@ class Payment extends Model
     protected $fillable = [
          'company_id',
         'transaction_type',
+        'phone_number',
         'trans_id',
         'trans_time',
         'trans_amount',

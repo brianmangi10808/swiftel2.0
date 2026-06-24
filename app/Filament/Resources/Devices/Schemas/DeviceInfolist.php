@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Filament\Resources\Clients\Schemas;
+namespace App\Filament\Resources\Device\Schemas;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
-class ClientsInfolist
+class DeviceInfolist
 {
     public static function configure(Schema $schema): Schema
     {
@@ -20,37 +20,41 @@ class ClientsInfolist
                         'lg' =>4,       
                           ])
                     ->schema([
-                        TextEntry::make('phone')
-                         ->tooltip('customers username')
+                        TextEntry::make('shortname')
                          ->copyable()
                          ->copyMessage('Copied!')
                          ->copyMessageDuration(1500)
-                            ->label('Username')
+                            ->label('Device name')
                             ->weight('bold'),
 
-                        TextEntry::make('password')
+                        TextEntry::make('nasname')
                         ->copyable()
                          ->copyMessage('Copied!')
                          ->copyMessageDuration(1500)
-                            ->label('Password'),
+                            ->label('Ip Address'),
 
-                        TextEntry::make('package.name')
+                        TextEntry::make('api_username')
                             
-                            ->icon('heroicon-o-wifi'),
+                            ->label('Api Username'),
 
-                        TextEntry::make('router')
-                            ->label('Router'),
+                        TextEntry::make('secret')
+                            ->label('Secret & Password'),
 
-                        TextEntry::make('payment_status')
-                            ->label('payment_status')
-                            ->icon('heroicon-o-wallet'),
+                        TextEntry::make('api_port')
+                            ->label('Api Port')
+                            ->default(8728),
 
                         
 
-                        TextEntry::make('expiring_date')
-                            ->dateTime('M j, Y H:i'),
+                        TextEntry::make('location')
+                            ->label('Location'),
 
-                        TextEntry::make('mpesa_receipt')
+                        TextEntry::make('status')
+                         ->badge()
+                    ->colors([
+                    'success' => 'online',
+                    'danger'  => 'offline',
+                ]),
                             
                     ]),
 

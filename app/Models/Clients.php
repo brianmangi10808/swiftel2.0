@@ -45,6 +45,16 @@ public function sessions()
 {
     return $this->hasMany(Radacct::class, 'username', 'phone');
 }
+ public function payment()
+    {
+        return $this->hasMany(\App\Models\Payment::class, 'bill_ref_number', 'username');
+    }
+
+      public function messages()
+    {
+        return $this->hasMany(\App\Models\Messages::class, 'recipient', 'username');
+    }
+
   public function company()
     {
         return $this->belongsTo(Company::class);

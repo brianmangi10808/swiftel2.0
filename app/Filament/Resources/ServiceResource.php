@@ -23,7 +23,8 @@ class ServiceResource extends Resource
 
   
  protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-wifi';
-    protected static \UnitEnum|string|null $navigationGroup = 'ISP Management';
+         protected static \UnitEnum|string|null $navigationGroup = 'PPPOE Customers';
+
     protected static ?string $navigationLabel = 'Services';
         protected static ?int $navigationSort = 40;
     protected static ?string $pluralModelLabel = 'Services';
