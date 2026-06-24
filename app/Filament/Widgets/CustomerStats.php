@@ -8,7 +8,7 @@ use App\Models\ExpirySnapshot;
 
 class CustomerStats extends BaseWidget
 {
-   // protected static ?string $heading = 'Customer Health Stats';
+   // protected ?string $heading = 'Customer Health Stats';
 public static function canView(): bool
     {
         return Auth::user()->is_super_admin 

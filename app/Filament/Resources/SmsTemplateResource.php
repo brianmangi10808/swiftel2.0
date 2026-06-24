@@ -6,17 +6,20 @@ use App\Models\SmsTemplate;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Schemas\Schema; 
 
 class SmsTemplateResource extends Resource
 {
     protected static ?string $model = SmsTemplate::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
+    
     protected static ?string $navigationLabel = 'SMS Templates';
       protected static ?int $navigationSort = 20;
                   public static function canViewAny(): bool
@@ -48,7 +51,7 @@ public static function canDeleteAny(): bool
 {
     return Auth::user()?->can('delete sms_templates') ?? false;
 }
-    protected static ?string $navigationGroup = 'Communication';
+    protected static \UnitEnum|string|null $navigationGroup = 'Communication';
 
 public static function getEloquentQuery(): Builder
 {
@@ -64,9 +67,11 @@ public static function getEloquentQuery(): Builder
     return $query->where('company_id', $user->company_id);
 }
 
-   public static function form(Form $form): Form
-{
-    return $form->schema([
+ public static function form(Schema $schema): Schema
+    {
+        return $schema
+
+    ->schema([
                      Forms\Components\Hidden::make('company_id')
     ->default(fn () => Auth::user()?->company_id),
         Forms\Components\Select::make('type')
@@ -110,8 +115,8 @@ public static function getEloquentQuery(): Builder
             Tables\Columns\ToggleColumn::make('active'),
             Tables\Columns\TextColumn::make('updated_at')->dateTime(),
         ])
-        ->actions([
-            Tables\Actions\EditAction::make(),
+        ->recordActions([
+            Actions\EditAction::make(),
         ]);
     }
 

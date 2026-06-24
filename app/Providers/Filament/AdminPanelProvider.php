@@ -20,6 +20,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Support\Enums\Width;
 
 use Filament\Support\Facades\FilamentAsset;
 
@@ -52,7 +53,8 @@ public function boot(): void
                 'primary' => Color::hex('#4FDF54'),
                 'success' => Color::Green,
                 'danger'  => Color::Red,
-                   'dark' => '#006400'
+                   'dark' => '#006400',
+                    'warning' => Color::Amber
             ])
             ->maxContentWidth('full')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

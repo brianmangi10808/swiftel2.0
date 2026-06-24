@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use Filament\Forms;
 use Filament\Pages\Page;
 use Filament\Forms\Form;
+use Filament\Schemas\Schema;
 use Filament\Notifications\Notification;
 use App\Models\SystemSetting;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -13,9 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Settings extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static ?string $title = 'System Settings';
-    protected static string $view = 'filament.pages.settings';
+    protected string $view = 'filament.pages.settings';
     protected static string $panel = 'admin';
     public static function shouldRegisterNavigation(): bool
     {
@@ -51,12 +52,12 @@ class Settings extends Page
         ]);
     }
 
-    public function form(Form $form): Form
-    {
-        return $form
+   public static function form(Schema $schema): Schema
+{
+    return $schema
             ->statePath('data')
             ->schema([
-                Forms\Components\Section::make('PPPoE Expiry Reminder Settings')
+                \Filament\Schemas\Components\Section::make('PPPoE Expiry Reminder Settings')
                     ->description('Choose when customers should receive expiry reminders.')
                     ->schema([
                         Forms\Components\Select::make('pppoe_expiry_reminder_times')
@@ -79,7 +80,7 @@ class Settings extends Page
                     ]),
 
 
-                    Forms\Components\Section::make('Customer Pruning Settings')
+                    \Filament\Schemas\Components\Section::make('Customer Pruning Settings')
     ->description('Automatically disable or prune customers after expiry.')
     ->schema([
         Forms\Components\Select::make('prune_after_expiry')

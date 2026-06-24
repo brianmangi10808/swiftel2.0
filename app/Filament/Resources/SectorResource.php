@@ -9,18 +9,19 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Database\Eloquent\Model;
-
+use Filament\Schemas\Schema; 
 class SectorResource extends Resource
 {
     protected static ?string $model = Sector::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-      protected static ?string $navigationGroup = 'Area';
+    protected static \BackedEnum|string|null $navigationIcon= 'heroicon-o-rectangle-stack';
+      protected static \UnitEnum|string|null $navigationGroup = 'Area';
           protected static ?int $navigationSort = 31;
 
                public static function canViewAny(): bool
@@ -66,9 +67,9 @@ public static function getEloquentQuery(): Builder
     return $query->where('company_id', $user->company_id);
 }
 
-    public static function form(Form $form): Form
+   public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
                                 Forms\Components\Hidden::make('company_id')
     ->default(fn () => Auth::user()?->company_id),
@@ -100,13 +101,13 @@ public static function getEloquentQuery(): Builder
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                Actions\EditAction::make(),
+                Actions\ViewAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

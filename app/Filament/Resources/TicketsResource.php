@@ -9,22 +9,25 @@ use Filament\Forms\Form;
 use Filament\Support\Enums\FontWeight;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CustomerResource;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Schemas\Schema; 
 
 class TicketsResource extends Resource
 {
     protected static ?string $model = Tickets::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static \BackedEnum|string|null $navigationIcon= 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Tickets';
     protected static ?string $pluralLabel = 'Tickets';
      protected static ?int $navigationSort = 3;
-      protected static ?string $navigationGroup = 'Customers';
+      protected static \UnitEnum|string|null $navigationGroup = 'PPPOE Customers';
+
     protected static ?string $modelLabel = 'Ticket';
 public static function canViewAny(): bool
 {
@@ -69,9 +72,9 @@ public static function getEloquentQuery(): Builder
     // ✅ Company Ticket → only their company tickets
     return $query->where('company_id', $user->company_id);
 }
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
              Forms\Components\Hidden::make('company_id')
     ->default(fn () => Auth::user()?->company_id),
@@ -138,16 +141,14 @@ Forms\Components\Textarea::make('resolution_notes')
     ->toggleable()
     ->visible(fn () => Auth::user()?->is_super_admin),
 
-                Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable(),
+            
 
             Tables\Columns\TextColumn::make('customer.full_name')
     ->label('Customer')
     ->getStateUsing(fn ($record) => $record->customer?->firstname . ' ' . $record->customer?->lastname)
     ->weight(FontWeight::Bold)
-    ->color('dark')
-    ->url(fn ($record) => $record->customer ? CustomerResource::getUrl('view', ['record' => $record->customer->id]) : null),
+    ->color('dark'),
+    // ->url(fn ($record) => $record->customer ? CustomerResource::getUrl('view', ['record' => $record->customer->id]) : null),
   Tables\Columns\TextColumn::make('customer.status')
                 ->label('Customer Status')
                 ->badge()
@@ -182,13 +183,11 @@ Forms\Components\Textarea::make('resolution_notes')
 
                 Tables\Columns\TextColumn::make('severity')
                     ->label('Severity')
-                    ->color(fn (string $state): string => match ($state) {
-                    'Low' => 'success',
-                     'Medium' => 'primary',
-                    'High' => 'danger',
-                    
-                    default => 'gray',
-                })
+                                   ->colors([
+        'danger' => fn ($state) => strtolower($state) === 'High',
+        'warning' => fn ($state) => strtolower($state) === 'medium',
+        'Warning' => fn ($state) => strtolower($state) === 'low',
+    ])
                     ->badge(),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -203,8 +202,8 @@ Forms\Components\Textarea::make('resolution_notes')
                 //
             ])
  
-    ->actions([
-            Tables\Actions\Action::make('resolve')
+    ->recordActions([
+            Actions\Action::make('resolve')
                 ->label('Resolve')
                 ->button()
                 ->color('success')
@@ -234,9 +233,9 @@ Forms\Components\Textarea::make('resolution_notes')
                     
                 }),
 
-            Tables\Actions\ActionGroup::make([
+            Actions\ActionGroup::make([
         
-                Tables\Actions\DeleteAction::make()
+                Actions\DeleteAction::make()
                     ->label('Delete Ticket')
                     ->icon('heroicon-o-trash')
                     ->color('danger'),
@@ -246,7 +245,7 @@ Forms\Components\Textarea::make('resolution_notes')
             ->button(),
 
                   // ADD THIS: View Action as Modal
-            Tables\Actions\Action::make('view')
+            Actions\Action::make('view')
                 ->label('View')
                 ->icon('heroicon-o-eye')
                 ->color('info')
@@ -268,11 +267,11 @@ Forms\Components\Textarea::make('resolution_notes')
                     'resolved_at' => $record->resolved_at,
                 ])
                 ->form([
-                    Forms\Components\Section::make('Ticket Information')
+                    \Filament\Schemas\Components\Section::make('Ticket Information')
                         ->schema([
                            
 
-                            Forms\Components\Grid::make(2)
+                            \Filament\Schemas\Components\Grid::make(2)
                                 ->schema([
                                     Forms\Components\TextInput::make('customer')
                                         ->label('Customer')
@@ -287,7 +286,7 @@ Forms\Components\Textarea::make('resolution_notes')
                                 ->label('Sector')
                                 ->disabled(),
 
-                            Forms\Components\Grid::make(2)
+                            \Filament\Schemas\Components\Grid::make(2)
                                 ->schema([
                                     Forms\Components\TextInput::make('status')
                                         ->label('Status')
@@ -308,7 +307,7 @@ Forms\Components\Textarea::make('resolution_notes')
                                 ->disabled(),
                         ]),
 
-                    Forms\Components\Section::make('Resolution Details')
+                    \Filament\Schemas\Components\Section::make('Resolution Details')
                         ->schema([
                             Forms\Components\Textarea::make('resolution_notes')
                                 ->label('Resolution Notes')
@@ -323,9 +322,9 @@ Forms\Components\Textarea::make('resolution_notes')
                 ]),
 
         ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

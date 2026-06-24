@@ -11,22 +11,24 @@ use Filament\Forms\Components\ToggleColumn;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Section;
+use Filament\Schemas\Components\Section;
 use Filament\Resources\Resource;
 use App\Models\Company;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Schemas\Schema; 
 
 class SmsGatewayResource extends Resource
 {
     protected static ?string $model = SmsGateway::class;
  
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Communication';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static \UnitEnum|string|null $navigationGroup = 'Communication';
         protected static ?int $navigationSort = 21;
 
         public static function canViewAny(): bool
@@ -71,9 +73,9 @@ public static function canDeleteAny(): bool
    
     return $query->where('company_id', $user->company_id);
 }
-public static function form(Form $form): Form
-{
-    return $form
+ public static function form(Schema $schema): Schema
+    {
+        return $schema
         ->schema([
             Section::make('Gateway Details')
                 ->schema([
@@ -183,13 +185,13 @@ Forms\Components\Hidden::make('company_id')
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                Actions\EditAction::make(),
             
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

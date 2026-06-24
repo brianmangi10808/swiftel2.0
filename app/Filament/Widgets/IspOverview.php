@@ -18,7 +18,7 @@ class IspOverview extends BaseWidget
             || Auth::user()->can('read customers');
     }
 
-        protected static ?string $pollingInterval = null;
+        protected ?string $pollingInterval = null;
 public function getViewData(): array
     {
         return array_merge(parent::getViewData(), [

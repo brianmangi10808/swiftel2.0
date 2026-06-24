@@ -6,8 +6,10 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
 use App\Models\Permission;
 use Illuminate\Database\Eloquent\Model;
@@ -18,9 +20,9 @@ use Illuminate\Support\Facades\Auth;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
-  //protected static ?string $navigationGroup = 'Network Devices';
+  //protected static \UnitEnum|string|null $navigationGroup = 'Network Devices';
   
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static \BackedEnum|string|null $navigationIcon= 'heroicon-o-users';
     
 public static function getEloquentQuery(): Builder
 {
@@ -66,13 +68,13 @@ public static function getEloquentQuery(): Builder
         return Auth::user()?->can('delete users') ?? false;
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
                         Forms\Components\Hidden::make('company_id')
                     ->default(fn () => Auth::user()?->company_id),
-                Forms\Components\Section::make('User Information')
+                \Filament\Schemas\Components\Section::make('User Information')
                     ->schema([
   Forms\Components\Select::make('roles')
     ->relationship('roles', 'name')
@@ -149,15 +151,15 @@ public static function getEloquentQuery(): Builder
             ->filters([
                
             ])
-            ->actions([
-                Tables\Actions\EditAction::make()
+            ->recordActions([
+                Actions\EditAction::make()
                     ->color('warning'),
-                Tables\Actions\DeleteAction::make()
+                Actions\DeleteAction::make()
                     ->requiresConfirmation(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()
                         ->requiresConfirmation(),
                 ]),
             ]);

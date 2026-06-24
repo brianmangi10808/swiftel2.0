@@ -8,20 +8,23 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
+use Filament\Schemas\Schema; 
 use Filament\Tables\Table;
 use Filament\Support\Enums\FontWeight;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Tables\Columns\TextColumn;
 
 class PaymentResource extends Resource
 {
     protected static ?string $model = Payment::class;
         protected static ?int $navigationSort = 29;
 
-    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
-    protected static ?string $navigationGroup = 'Finance';
+    protected static \BackedEnum|string|null $navigationIcon= 'heroicon-o-currency-dollar';
+    protected static \UnitEnum|string|null $navigationGroup = 'Finance';
     protected static ?string $navigationLabel = 'Payments';
           public static function canViewAny(): bool
 {
@@ -67,9 +70,11 @@ public static function canDeleteAny(): bool
     return $query->where('company_id', $user->company_id);
 }
 
-    public static function form(Form $form): Form
-    {
-        return $form->schema([
+public static function form(Schema $schema): Schema
+{
+    return $schema
+        
+        ->schema([
               Forms\Components\Hidden::make('company_id')
     ->default(fn () => Auth::user()?->company_id),
             Forms\Components\TextInput::make('transaction_type')->maxLength(50)->disabled(),
@@ -110,7 +115,8 @@ Tables\Columns\TextColumn::make('customer.lastname')
       ->color('success')
        ->weight(FontWeight::Bold) ,
 
-         
+       
+       
             Tables\Columns\TextColumn::make('created_at')->dateTime()->label('Created'),
         ])
         ->defaultSort('created_at', 'desc')
@@ -128,14 +134,14 @@ Tables\Columns\TextColumn::make('customer.lastname')
             ->when($data['until'], fn ($q) => $q->whereDate('created_at', '<=', $data['until']));
     })
         ])
-        ->actions([
-            Tables\Actions\EditAction::make(),
-           //Tables\Actions\DeleteAction::make(),
+        ->recordActions([
+            Actions\EditAction::make(),
+           //Actions\DeleteAction::make(),
         ])
-        ->bulkActions([
-          //  Tables\Actions\DeleteBulkAction::make(),
+        ->toolbarActions([
+          //  Actions\DeleteBulkAction::make(),
             // CSV Export Bulk Action
-Tables\Actions\BulkAction::make('export')
+Actions\BulkAction::make('export')
     ->label('Export Leads')
     ->icon('heroicon-o-arrow-down-tray')
     ->action(function ($records) {

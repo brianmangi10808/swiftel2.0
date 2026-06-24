@@ -7,17 +7,19 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Filament\Schemas\Schema; 
 
 class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
-    protected static ?string $navigationIcon = 'heroicon-o-shield-check';
-    protected static ?string $navigationGroup = 'User Management';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-shield-check';
+    protected static \UnitEnum|string|null $navigationGroup = 'User Management';
     protected static ?int $navigationSort = 2;
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
 {
@@ -54,11 +56,11 @@ class RoleResource extends Resource
     {
         return Auth::user()?->can('delete roles') ?? false;
     }
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\Section::make('Role Details')
+                \Filament\Schemas\Components\Section::make('Role Details')
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->required()
@@ -71,7 +73,7 @@ class RoleResource extends Resource
                             ->default('web'),
                     ]),
 
-                Forms\Components\Section::make('Permissions')
+                \Filament\Schemas\Components\Section::make('Permissions')
                     ->schema([
                         Forms\Components\CheckboxList::make('permissions')
                             ->relationship('permissions', 'name')
@@ -116,15 +118,15 @@ class RoleResource extends Resource
             ->filters([
                 //
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
+            ->recordActions([
+                Actions\ViewAction::make(),
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make()
                     ->requiresConfirmation(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make()
                         ->requiresConfirmation(),
                 ]),
             ]);

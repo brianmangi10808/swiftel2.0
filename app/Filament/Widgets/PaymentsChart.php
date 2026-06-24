@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Auth;
 
 class PaymentsChart extends ChartWidget
 {
-    protected static ?string $heading = 'Payments';
-    protected static ?string $description = 'Payments and expenses trend.';
+    protected ?string $heading = 'Payments';
+    protected ?string $description = 'Payments and expenses trend.';
     public ?string $filter = 'this_year';
  public static function canView(): bool
     {

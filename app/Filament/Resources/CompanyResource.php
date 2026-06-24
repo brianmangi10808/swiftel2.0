@@ -8,15 +8,17 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
+use Filament\Schemas\Schema; 
 
 class CompanyResource extends Resource
 {
     protected static ?string $model = Company::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-office';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office';
 
-    // protected static ?string $navigationGroup = 'System Management';
+    // protected static \UnitEnum|string|null $navigationGroup = 'System Management';
 
     // protected static ?int $navigationSort = 100;
     protected static bool $shouldRegisterNavigation = true;
@@ -37,10 +39,11 @@ public static function canAccess(): bool
 }
 
 
-    public static function form(Form $form): Form
-    {
-        return $form->schema([
-            Forms\Components\Section::make('Company Details')
+public static function form(Schema $schema): Schema
+{
+    return $schema
+        ->schema([
+            \Filament\Schemas\Components\Section::make('Company Details')
                 ->schema([
                     Forms\Components\TextInput::make('name')
                         ->required()
@@ -72,12 +75,12 @@ public static function canAccess(): bool
                 Tables\Columns\TextColumn::make('phone'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime('d M Y'),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()->requiresConfirmation(),
+            ->recordActions([
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make()->requiresConfirmation(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\DeleteBulkAction::make(),
             ]);
     }
 

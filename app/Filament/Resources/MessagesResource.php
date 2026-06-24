@@ -10,18 +10,20 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\Auth;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Schemas\Schema; 
 
 class MessagesResource extends Resource
 {
     protected static ?string $model = Messages::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-     protected static ?string $navigationGroup = 'Communication';
+    protected static \BackedEnum|string|null $navigationIcon= 'heroicon-o-rectangle-stack';
+     protected static \UnitEnum|string|null $navigationGroup = 'Communication';
          protected static ?int $navigationSort = 22;
 
                            public static function canViewAny(): bool
@@ -68,9 +70,9 @@ public static function getEloquentQuery(): Builder
     return $query->where('company_id', $user->company_id);
 }
 
-    public static function form(Form $form): Form
-    {
-        return $form
+ public static function form(Schema $schema): Schema
+{
+    return $schema
             ->schema([
                 //
             ]);
@@ -95,12 +97,12 @@ public static function getEloquentQuery(): Builder
             ->filters([
                 //
             ])
-            ->actions([
-               // Tables\Actions\EditAction::make(),
+            ->recordActions([
+               // Actions\EditAction::make(),
             ])
-            ->bulkActions([
-               // Tables\Actions\BulkActionGroup::make([
-                   // Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+               // Actions\BulkActionGroup::make([
+                   // Actions\DeleteBulkAction::make(),
               //  ]),
             ]);
     }

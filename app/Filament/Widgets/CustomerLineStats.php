@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerLineStats extends ChartWidget
 {
-    protected static ?string $heading = 'Customer Trends';
+    protected ?string $heading = 'Customer Trends';
     protected static ?int $sort = 2;
  public static function canView(): bool
     {
         return Auth::user()->is_super_admin 
-            || Auth::user()->can('read payments');
+            || Auth::user()->can('read payment');
     }
 protected function getData(): array
 {
@@ -52,7 +52,7 @@ protected function getData(): array
     $churned = $months->map(function ($month) use ($baseCustomerQuery) {
         return (clone $baseCustomerQuery)
             ->whereDate('expiry_date', '<=', $month->endOfMonth())
-            ->whereDoesntHave('payments')
+            ->whereDoesntHave('payment')
             ->count();
     });
 

@@ -4,7 +4,9 @@ namespace App\Filament\Resources\SectorResource\RelationManagers;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Tables;
+use Filament\Actions;
 use Filament\Tables\Table;
 use Filament\Support\Enums\FontWeight;
 use Carbon\Carbon;
@@ -16,13 +18,14 @@ use Filament\Notifications\Notification;
 class CustomersRelationManager extends RelationManager{
 protected static string $relationship = 'customers';
 
-    public function form(Form $form): Form
+   public function form(Schema $schema): Schema
+
     {
-        return $form
+        return $schema
             ->schema([
                 
 
-                Forms\Components\Grid::make(2)
+                \Filament\Schemas\Components\Grid::make(2)
                     ->schema([
                        Forms\Components\TextInput::make('firstname')
                     ->label('firstname'),
@@ -161,15 +164,15 @@ protected static string $relationship = 'customers';
             ->headerActions([
         
             ])
-            ->actions([
-                Tables\Actions\EditAction::make()
+            ->recordActions([
+                Actions\EditAction::make()
                     ->slideOver()
                     ->modalWidth('2xl'),
-                Tables\Actions\DeleteAction::make(),
+                Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
